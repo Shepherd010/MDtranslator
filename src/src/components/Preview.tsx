@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
 import Mermaid from './Mermaid';
 
@@ -15,7 +16,7 @@ export default function Preview({ content }: PreviewProps) {
     <div className="markdown-preview">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
         components={{
           code({ node, inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
@@ -37,26 +38,26 @@ export default function Preview({ content }: PreviewProps) {
               </code>
             );
           },
-          // Custom components for better styling
-          h1: ({ children }) => <h1 className="md-h1">{children}</h1>,
-          h2: ({ children }) => <h2 className="md-h2">{children}</h2>,
-          h3: ({ children }) => <h3 className="md-h3">{children}</h3>,
-          h4: ({ children }) => <h4 className="md-h4">{children}</h4>,
-          p: ({ children }) => <p className="md-p">{children}</p>,
-          ul: ({ children }) => <ul className="md-ul">{children}</ul>,
-          ol: ({ children }) => <ol className="md-ol">{children}</ol>,
-          li: ({ children }) => <li className="md-li">{children}</li>,
-          blockquote: ({ children }) => <blockquote className="md-blockquote">{children}</blockquote>,
-          a: ({ href, children }) => <a href={href} className="md-link" target="_blank" rel="noopener noreferrer">{children}</a>,
-          table: ({ children }) => <div className="table-wrapper"><table className="md-table">{children}</table></div>,
-          thead: ({ children }) => <thead className="md-thead">{children}</thead>,
-          tbody: ({ children }) => <tbody className="md-tbody">{children}</tbody>,
-          tr: ({ children }) => <tr className="md-tr">{children}</tr>,
-          th: ({ children }) => <th className="md-th">{children}</th>,
-          td: ({ children }) => <td className="md-td">{children}</td>,
-          hr: () => <hr className="md-hr" />,
-          img: ({ src, alt }) => <img src={src} alt={alt} className="md-img" />,
-          pre: ({ children }) => <pre className="md-pre">{children}</pre>,
+          // Custom components for better styling - preserve HTML attributes for rehype-raw compatibility
+          h1: ({ children, ...props }) => <h1 className="md-h1" {...props}>{children}</h1>,
+          h2: ({ children, ...props }) => <h2 className="md-h2" {...props}>{children}</h2>,
+          h3: ({ children, ...props }) => <h3 className="md-h3" {...props}>{children}</h3>,
+          h4: ({ children, ...props }) => <h4 className="md-h4" {...props}>{children}</h4>,
+          p: ({ children, ...props }) => <p className="md-p" {...props}>{children}</p>,
+          ul: ({ children, ...props }) => <ul className="md-ul" {...props}>{children}</ul>,
+          ol: ({ children, ...props }) => <ol className="md-ol" {...props}>{children}</ol>,
+          li: ({ children, ...props }) => <li className="md-li" {...props}>{children}</li>,
+          blockquote: ({ children, ...props }) => <blockquote className="md-blockquote" {...props}>{children}</blockquote>,
+          a: ({ href, children, ...props }) => <a href={href} className="md-link" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>,
+          table: ({ children, ...props }) => <div className="table-wrapper"><table className="md-table" {...props}>{children}</table></div>,
+          thead: ({ children, ...props }) => <thead className="md-thead" {...props}>{children}</thead>,
+          tbody: ({ children, ...props }) => <tbody className="md-tbody" {...props}>{children}</tbody>,
+          tr: ({ children, ...props }) => <tr className="md-tr" {...props}>{children}</tr>,
+          th: ({ children, ...props }) => <th className="md-th" {...props}>{children}</th>,
+          td: ({ children, ...props }) => <td className="md-td" {...props}>{children}</td>,
+          hr: (props) => <hr className="md-hr" {...props} />,
+          img: ({ src, alt, ...props }) => <img src={src} alt={alt || ''} className="md-img" {...props} />,
+          pre: ({ children, ...props }) => <pre className="md-pre" {...props}>{children}</pre>,
         }}
       >
         {content}
@@ -227,6 +228,41 @@ export default function Preview({ content }: PreviewProps) {
           border-radius: 6px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.12);
           margin: 8px 0;
+        }
+
+        /* Support for HTML align attribute */
+        .markdown-preview [align="center"] {
+          text-align: center;
+        }
+        .markdown-preview [align="right"] {
+          text-align: right;
+        }
+        .markdown-preview [align="left"] {
+          text-align: left;
+        }
+
+        /* Support for HTML tables with width */
+        .markdown-preview table {
+          border-collapse: collapse;
+          margin: 16px 0;
+        }
+        .markdown-preview table td,
+        .markdown-preview table th {
+          padding: 8px 16px;
+          border: 1px solid #d0d7de;
+        }
+
+        /* Images inside HTML tags */
+        .markdown-preview img {
+          max-width: 100%;
+          height: auto;
+        }
+
+        /* Support br tags */
+        .markdown-preview br {
+          display: block;
+          margin: 4px 0;
+          content: "";
         }
 
         /* Task lists */

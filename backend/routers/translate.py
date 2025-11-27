@@ -206,8 +206,8 @@ async def save_settings(request: SettingsRequest):
     return {"success": True}
 
 # --- WebSocket Endpoint ---
-@router.websocket("/ws/translate/{doc_id}")
-async def websocket_endpoint(websocket: WebSocket, doc_id: str):
+async def websocket_translate_handler(websocket: WebSocket, doc_id: str):
+    """WebSocket handler for translation - can be called from main.py"""
     await manager.connect(doc_id, websocket)
     try:
         doc = await document_store.get_document(doc_id)

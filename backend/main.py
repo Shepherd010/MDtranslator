@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from pathlib import Path
 
 from .routers import translate
+from .routers.translate import manager, websocket_translate_handler
 
 # Load .env from parent directory
 env_path = Path(__file__).resolve().parent.parent / '.env'
@@ -34,6 +35,11 @@ app.add_middleware(
 )
 
 app.include_router(translate.router)
+
+# Register WebSocket route directly on the app
+@app.websocket("/ws/translate/{doc_id}")
+async def websocket_endpoint(websocket: WebSocket, doc_id: str):
+    await websocket_translate_handler(websocket, doc_id)
 
 @app.get("/")
 async def root():

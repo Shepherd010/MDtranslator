@@ -6,20 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "lint": "next lint"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.2.0",
     "@codemirror/language-data": "^6.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@uiw/react-codemirror": "^4.21.21",
-    "better-sqlite3": "^9.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.30.4",
     "framer-motion": "^11.0.14",
     "lucide-react": "^0.358.0",
     "mermaid": "^10.9.0",
@@ -41,7 +37,6 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

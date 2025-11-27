@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, memo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, Languages, Zap, GitCompare, FolderOpen } from 'lucide-react';
@@ -10,31 +10,50 @@ interface UploadZoneProps {
   onShowHistory?: () => void;
 }
 
-// 动画变体
+// 优化后的动画配置 - 更流畅
+const smoothTransition = { 
+  type: "spring" as const, 
+  stiffness: 400, 
+  damping: 35, 
+  mass: 0.8 
+};
+
+const quickTransition = { 
+  duration: 0.15, 
+  ease: [0.25, 0.1, 0.25, 1] 
+};
+
+// 简化的动画变体
 const containerVariants = {
   initial: { opacity: 0 },
   animate: { 
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
+      staggerChildren: 0.08,
+      delayChildren: 0.1
     }
   }
 };
 
 const itemVariants = {
-  initial: { opacity: 0, y: 30 },
+  initial: { opacity: 0, y: 20 },
   animate: { 
     opacity: 1, 
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 25
-    }
+    transition: smoothTransition
   }
 };
 
+const featureIconVariants = {
+  initial: { scale: 0.8, opacity: 0 },
+  animate: { 
+    scale: 1, 
+    opacity: 1,
+    transition: quickTransition
+  }
+};
+
+// 保留浮动动画（upload页面动画是OK的）
 const floatingVariants = {
   animate: {
     y: [0, -10, 0],
@@ -43,24 +62,6 @@ const floatingVariants = {
       repeat: Infinity,
       ease: "easeInOut"
     }
-  }
-};
-
-const featureIconVariants = {
-  initial: { scale: 0, rotate: -180 },
-  animate: { 
-    scale: 1, 
-    rotate: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20
-    }
-  },
-  hover: { 
-    scale: 1.2, 
-    rotate: 10,
-    transition: { duration: 0.2 }
   }
 };
 

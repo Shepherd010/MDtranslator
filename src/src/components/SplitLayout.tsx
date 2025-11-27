@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Code, Languages, Eye } from 'lucide-react';
 import { useDocumentStore } from '@/store/useDocumentStore';
 import { useTranslation, useDocumentHistory, useSettings } from '@/hooks';
@@ -12,36 +12,23 @@ import Editor from './Editor';
 import Preview from './Preview';
 import UploadZone from './UploadZone';
 
-// 动画配置
-const pageTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 30
+// 优化后的动画配置 - 只在必要时使用
+const quickTransition = {
+  duration: 0.2,
+  ease: [0.25, 0.1, 0.25, 1]
 };
 
 const mainVariants = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 15 },
   animate: { 
     opacity: 1, 
     y: 0,
-    transition: {
-      duration: 0.4,
-      staggerChildren: 0.1
-    }
+    transition: quickTransition
   },
   exit: { 
     opacity: 0, 
-    y: -20,
-    transition: { duration: 0.3 }
-  }
-};
-
-const panelContainerVariants = {
-  initial: { opacity: 0, scale: 0.95 },
-  animate: { 
-    opacity: 1, 
-    scale: 1,
-    transition: pageTransition
+    y: -15,
+    transition: { duration: 0.15 }
   }
 };
 
@@ -193,7 +180,7 @@ export default function SplitLayout() {
   }
 
   return (
-    <LayoutGroup>
+    <>
       <motion.div 
         variants={mainVariants}
         initial="initial"
@@ -224,114 +211,68 @@ export default function SplitLayout() {
           onReset={handleReset}
         />
 
-        {/* Main Content */}
-        <motion.main 
-          layout
-          transition={pageTransition}
+        {/* Main Content - 使用普通 div 避免翻译时动画卡顿 */}
+        <main 
           style={{ flex: 1, display: 'flex', gap: '8px', padding: '8px', overflow: 'hidden' }}
         >
           {/* Left Half */}
-          <motion.div 
-            layout
-            variants={panelContainerVariants}
+          <div 
             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}
           >
-            <AnimatePresence mode="wait">
-              {!isQuad ? (
-                <motion.div
-                  key="split-left"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={pageTransition}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                >
-                  <ContentPanel
-                    title="英文 MD"
-                    icon={<Code size={14} />}
-                    color="#3b82f6"
-                    panelId="source-editor"
-                    side="left"
-                    isQuad={isQuad}
-                    expanded={leftExpanded}
-                    onToggle={handlePanelToggle}
-                  >
-                    <Editor value={rawContent} onChange={setRawContent} />
-                  </ContentPanel>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="quad-left"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={pageTransition}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}
-                >
-                  <LeftPanels
-                    rawContent={rawContent}
-                    translatedContent={translatedContent}
-                    leftExpanded={leftExpanded}
-                    onRawContentChange={setRawContent}
-                    onTranslatedContentChange={setTranslatedContent}
-                    onToggle={handlePanelToggle}
-                    onExpand={handlePanelExpand}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            {!isQuad ? (
+              <ContentPanel
+                title="英文 MD"
+                icon={<Code size={14} />}
+                color="#3b82f6"
+                panelId="source-editor"
+                side="left"
+                isQuad={isQuad}
+                expanded={leftExpanded}
+                onToggle={handlePanelToggle}
+              >
+                <Editor value={rawContent} onChange={setRawContent} />
+              </ContentPanel>
+            ) : (
+              <LeftPanels
+                rawContent={rawContent}
+                translatedContent={translatedContent}
+                leftExpanded={leftExpanded}
+                onRawContentChange={setRawContent}
+                onTranslatedContentChange={setTranslatedContent}
+                onToggle={handlePanelToggle}
+                onExpand={handlePanelExpand}
+              />
+            )}
+          </div>
 
           {/* Right Half */}
-          <motion.div 
-            layout
-            variants={panelContainerVariants}
+          <div 
             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}
           >
-            <AnimatePresence mode="wait">
-              {!isQuad ? (
-                <motion.div
-                  key="split-right"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={pageTransition}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                >
-                  <ContentPanel
-                    title="英文预览"
-                    icon={<Eye size={14} />}
-                    color="#8b5cf6"
-                    panelId="translated-editor"
-                    side="right"
-                    isQuad={isQuad}
-                    expanded={rightExpanded}
-                    onToggle={handlePanelToggle}
-                  >
-                    <Preview content={rawContent} />
-                  </ContentPanel>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="quad-right"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={pageTransition}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}
-                >
-                  <RightPanels
-                    rawContent={rawContent}
-                    translatedContent={translatedContent}
-                    rightExpanded={rightExpanded}
-                    onToggle={handlePanelToggle}
-                    onExpand={handlePanelExpand}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.main>
+            {!isQuad ? (
+              <ContentPanel
+                title="英文预览"
+                icon={<Eye size={14} />}
+                color="#8b5cf6"
+                panelId="translated-editor"
+                side="right"
+                isQuad={isQuad}
+                expanded={rightExpanded}
+                onToggle={handlePanelToggle}
+              >
+                <Preview content={rawContent} />
+              </ContentPanel>
+            ) : (
+              <RightPanels
+                rawContent={rawContent}
+                translatedContent={translatedContent}
+                rightExpanded={rightExpanded}
+                onToggle={handlePanelToggle}
+                onExpand={handlePanelExpand}
+              />
+            )}
+          </div>
+        </main>
 
         {/* Modals */}
         <SettingsModal
@@ -350,7 +291,7 @@ export default function SplitLayout() {
           onDelete={deleteDocument}
         />
       </motion.div>
-    </LayoutGroup>
+    </>
   );
 }
 

@@ -1,23 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, memo } from 'react';
+import { motion } from 'framer-motion';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 export type PanelId = 'source-editor' | 'source-preview' | 'translated-editor' | 'translated-preview';
 export type PanelSide = 'left' | 'right';
 
-// 动画配置
-const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 30
-};
-
-const buttonHoverVariants = {
-  initial: { scale: 1 },
-  hover: { scale: 1.1 },
-  tap: { scale: 0.95 }
+// 更快速的简单过渡
+const quickTransition = {
+  duration: 0.15,
+  ease: [0.25, 0.1, 0.25, 1] // cubic-bezier for smooth feel
 };
 
 interface PanelHeaderProps {
@@ -31,7 +24,7 @@ interface PanelHeaderProps {
   onToggle: (panelId: PanelId, side: PanelSide) => void;
 }
 
-export function PanelHeader({
+export const PanelHeader = memo(function PanelHeader({
   title,
   icon,
   color,
@@ -42,70 +35,25 @@ export function PanelHeader({
   onToggle,
 }: PanelHeaderProps) {
   const isExpanded = expanded === panelId;
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Only show expand button in quad mode
-  if (!isQuad) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        style={{
-          height: '36px',
-          background: `${color}08`,
-          borderBottom: `1px solid ${color}15`,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 12px',
-          gap: '8px'
-        }}
-      >
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-          style={{
-            width: '6px',
-            height: '6px',
-            background: color,
-            borderRadius: '50%'
-          }} 
-        />
-        <span style={{
-          fontSize: '12px',
-          fontWeight: 600,
-          color,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          {icon} {title}
-        </span>
-      </motion.div>
-    );
-  }
 
   return (
-    <motion.div 
-      layout
-      transition={springTransition}
-      style={{
-        height: '36px',
-        background: `${color}08`,
-        borderBottom: `1px solid ${color}15`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 12px'
-      }}
-    >
+    <div style={{
+      height: '36px',
+      background: `${color}08`,
+      borderBottom: `1px solid ${color}15`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: isQuad ? 'space-between' : 'flex-start',
+      padding: '0 12px',
+      gap: '8px'
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <motion.div 
           animate={{ 
-            scale: isExpanded ? [1, 1.3, 1] : 1,
-            boxShadow: isExpanded ? `0 0 8px ${color}` : 'none'
+            scale: isExpanded ? 1.2 : 1,
+            boxShadow: isExpanded ? `0 0 6px ${color}` : '0 0 0px transparent'
           }}
-          transition={{ duration: 0.5 }}
+          transition={quickTransition}
           style={{
             width: '6px',
             height: '6px',
@@ -124,38 +72,31 @@ export function PanelHeader({
           {icon} {title}
         </span>
       </div>
-      <motion.button
-        variants={buttonHoverVariants}
-        initial="initial"
-        whileHover="hover"
-        whileTap="tap"
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        onClick={() => onToggle(panelId, side)}
-        style={{
-          background: isHovered ? `${color}15` : 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '4px',
-          borderRadius: '4px',
-          color: isHovered ? color : '#64748b',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'background 0.2s, color 0.2s'
-        }}
-        title={isExpanded ? '缩小' : '放大到半屏'}
-      >
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
+      {isQuad && (
+        <motion.button
+          whileHover={{ scale: 1.1, backgroundColor: `${color}15` }}
+          whileTap={{ scale: 0.95 }}
+          transition={quickTransition}
+          onClick={() => onToggle(panelId, side)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px',
+            borderRadius: '4px',
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title={isExpanded ? '缩小' : '放大到半屏'}
         >
           {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-        </motion.div>
-      </motion.button>
-    </motion.div>
+        </motion.button>
+      )}
+    </div>
   );
-}
+});
 
 interface CollapsedPanelProps {
   title: string;
@@ -166,38 +107,7 @@ interface CollapsedPanelProps {
   onExpand: (panelId: PanelId, side: PanelSide) => void;
 }
 
-// 胶囊面板动画变体
-const collapsedPanelVariants = {
-  initial: { 
-    opacity: 0, 
-    scale: 0.8,
-    y: -20 
-  },
-  animate: { 
-    opacity: 1, 
-    scale: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    scale: 0.8,
-    y: -20,
-    transition: { duration: 0.2 }
-  },
-  hover: {
-    scale: 1.02,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    transition: { duration: 0.2 }
-  },
-  tap: { scale: 0.98 }
-};
-
-export function CollapsedPanel({
+export const CollapsedPanel = memo(function CollapsedPanel({
   title,
   icon,
   color,
@@ -208,16 +118,9 @@ export function CollapsedPanel({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <motion.div
-      layout
-      variants={collapsedPanelVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      whileHover="hover"
-      whileTap="tap"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         background: isHovered ? `${color}12` : `${color}08`,
         borderRadius: '8px',
@@ -228,24 +131,19 @@ export function CollapsedPanel({
         justifyContent: 'space-between',
         cursor: 'pointer',
         flexShrink: 0,
-        transition: 'background 0.2s, border-color 0.2s'
+        overflow: 'hidden',
+        transition: 'all 0.15s ease',
+        transform: isHovered ? 'scale(1.01)' : 'scale(1)'
       }}
       onClick={() => onExpand(panelId, side)}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <motion.div 
-          animate={{ 
-            scale: isHovered ? 1.3 : 1,
-            boxShadow: isHovered ? `0 0 8px ${color}` : 'none'
-          }}
-          transition={{ duration: 0.2 }}
-          style={{
-            width: '6px',
-            height: '6px',
-            background: color,
-            borderRadius: '50%'
-          }} 
-        />
+        <div style={{
+          width: '6px',
+          height: '6px',
+          background: color,
+          borderRadius: '50%'
+        }} />
         <span style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -257,18 +155,15 @@ export function CollapsedPanel({
           {icon} {title}
         </span>
       </div>
-      <motion.div
-        animate={{ 
-          rotate: isHovered ? 90 : 0,
-          scale: isHovered ? 1.2 : 1
-        }}
-        transition={{ duration: 0.2 }}
-      >
+      <div style={{ 
+        transform: isHovered ? 'rotate(45deg)' : 'rotate(0deg)',
+        transition: 'transform 0.15s ease'
+      }}>
         <Maximize2 size={14} color={isHovered ? color : "#64748b"} />
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
-}
+});
 
 interface ContentPanelProps {
   title: string;
@@ -282,29 +177,7 @@ interface ContentPanelProps {
   children: React.ReactNode;
 }
 
-// 内容面板动画变体
-const contentPanelVariants = {
-  initial: { 
-    opacity: 0, 
-    scale: 0.95 
-  },
-  animate: { 
-    opacity: 1, 
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 25
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95,
-    transition: { duration: 0.2 }
-  }
-};
-
-export function ContentPanel({
+export const ContentPanel = memo(function ContentPanel({
   title,
   icon,
   color,
@@ -315,15 +188,9 @@ export function ContentPanel({
   onToggle,
   children,
 }: ContentPanelProps) {
+  // 翻译时禁用 layout 动画以提高性能
   return (
-    <motion.div 
-      layout
-      layoutId={panelId}
-      variants={contentPanelVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={springTransition}
+    <div 
       style={{
         flex: 1,
         background: 'white',
@@ -332,7 +199,9 @@ export function ContentPanel({
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        border: `1.5px solid ${color}15`
+        border: `1.5px solid ${color}15`,
+        minHeight: 0,
+        transition: 'all 0.2s ease'
       }}
     >
       <PanelHeader
@@ -345,15 +214,9 @@ export function ContentPanel({
         expanded={expanded}
         onToggle={onToggle}
       />
-      <motion.div 
-        layout
-        style={{ flex: 1, overflow: 'auto' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-      >
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
         {children}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
-}
+});

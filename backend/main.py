@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
-from .routers import translate
-from .routers.translate import manager, websocket_translate_handler
+from routers import translate
+from routers.translate import manager, websocket_translate_handler
 
 # Load .env from parent directory
 env_path = Path(__file__).resolve().parent.parent / '.env'

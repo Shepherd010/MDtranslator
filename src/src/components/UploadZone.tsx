@@ -3,7 +3,7 @@
 import React, { useCallback, useState, memo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, Languages, Zap, GitCompare, FolderOpen } from 'lucide-react';
+import { Upload, FileText, Languages, Zap, GitCompare, FolderOpen, BookOpen } from 'lucide-react';
 import { useDocumentStore } from '@/store/useDocumentStore';
 
 interface UploadZoneProps {
@@ -68,6 +68,22 @@ const floatingVariants = {
 export default function UploadZone({ onShowHistory }: UploadZoneProps) {
   const setRawContent = useDocumentStore((state) => state.setRawContent);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingExample, setIsLoadingExample] = useState(false);
+
+  const loadExample = useCallback(async () => {
+    setIsLoadingExample(true);
+    try {
+      const res = await fetch('/api/example');
+      if (res.ok) {
+        const data = await res.json();
+        setRawContent(data.content);
+      }
+    } catch (e) {
+      console.error('Failed to load example:', e);
+    } finally {
+      setIsLoadingExample(false);
+    }
+  }, [setRawContent]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -372,18 +388,26 @@ export default function UploadZone({ onShowHistory }: UploadZoneProps) {
 
       {/* Load History Button */}
       <AnimatePresence>
-        {onShowHistory && (
+        <motion.div
+          variants={itemVariants}
+          style={{
+            display: 'flex',
+            gap: '16px',
+            marginTop: '24px',
+            zIndex: 10
+          }}
+        >
+          {/* 加载示例按钮 */}
           <motion.button
-            variants={itemVariants}
             whileHover={{ 
               scale: 1.05,
               background: 'rgba(255,255,255,0.25)',
               borderColor: 'rgba(255,255,255,0.5)'
             }}
             whileTap={{ scale: 0.95 }}
-            onClick={(e) => { e.stopPropagation(); onShowHistory(); }}
+            onClick={(e) => { e.stopPropagation(); loadExample(); }}
+            disabled={isLoadingExample}
             style={{
-              marginTop: '24px',
               padding: '12px 24px',
               background: 'rgba(255,255,255,0.15)',
               border: '2px solid rgba(255,255,255,0.3)',
@@ -391,22 +415,56 @@ export default function UploadZone({ onShowHistory }: UploadZoneProps) {
               color: 'white',
               fontSize: '14px',
               fontWeight: 500,
-              cursor: 'pointer',
+              cursor: isLoadingExample ? 'wait' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              zIndex: 10
+              opacity: isLoadingExample ? 0.7 : 1
             }}
           >
             <motion.div
-              whileHover={{ rotate: [0, -15, 15, 0] }}
-              transition={{ duration: 0.4 }}
+              animate={isLoadingExample ? { rotate: 360 } : {}}
+              transition={{ duration: 1, repeat: isLoadingExample ? Infinity : 0, ease: "linear" }}
             >
-              <FolderOpen size={18} />
+              <BookOpen size={18} />
             </motion.div>
-            载入历史记录
+            {isLoadingExample ? '加载中...' : '加载示例'}
           </motion.button>
-        )}
+
+          {/* 历史记录按钮 */}
+          {onShowHistory && (
+            <motion.button
+              whileHover={{ 
+                scale: 1.05,
+                background: 'rgba(255,255,255,0.25)',
+                borderColor: 'rgba(255,255,255,0.5)'
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => { e.stopPropagation(); onShowHistory(); }}
+              style={{
+                padding: '12px 24px',
+                background: 'rgba(255,255,255,0.15)',
+                border: '2px solid rgba(255,255,255,0.3)',
+                borderRadius: '12px',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <motion.div
+                whileHover={{ rotate: [0, -15, 15, 0] }}
+                transition={{ duration: 0.4 }}
+              >
+                <FolderOpen size={18} />
+              </motion.div>
+              载入历史记录
+            </motion.button>
+          )}
+        </motion.div>
       </AnimatePresence>
     </motion.div>
   );

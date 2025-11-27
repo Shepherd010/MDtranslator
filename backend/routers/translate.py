@@ -8,8 +8,8 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 
-from ..persistent_storage import document_store
-from ..markdown_utils import split_into_chunks
+from persistent_storage import store as document_store
+from markdown_utils import split_into_chunks
 
 router = APIRouter()
 

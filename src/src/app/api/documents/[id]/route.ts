@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/documents/${params.id}`);
+    const response = await fetch(`${BACKEND_URL}/api/documents/${params.id}`, { cache: 'no-store' });
     
     if (!response.ok) {
       return NextResponse.json(

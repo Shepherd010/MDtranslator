@@ -17,6 +17,7 @@ export default function Preview({ content }: PreviewProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeRaw, rehypeKatex]}
+        skipHtml={false}
         components={{
           code({ node, inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
@@ -43,7 +44,7 @@ export default function Preview({ content }: PreviewProps) {
           h2: ({ children, ...props }) => <h2 className="md-h2" {...props}>{children}</h2>,
           h3: ({ children, ...props }) => <h3 className="md-h3" {...props}>{children}</h3>,
           h4: ({ children, ...props }) => <h4 className="md-h4" {...props}>{children}</h4>,
-          p: ({ children, ...props }) => <p className="md-p" {...props}>{children}</p>,
+          p: ({ children, node, ...props }: any) => <p className="md-p" {...props}>{children}</p>,
           ul: ({ children, ...props }) => <ul className="md-ul" {...props}>{children}</ul>,
           ol: ({ children, ...props }) => <ol className="md-ol" {...props}>{children}</ol>,
           li: ({ children, ...props }) => <li className="md-li" {...props}>{children}</li>,
@@ -55,8 +56,44 @@ export default function Preview({ content }: PreviewProps) {
           tr: ({ children, ...props }) => <tr className="md-tr" {...props}>{children}</tr>,
           th: ({ children, ...props }) => <th className="md-th" {...props}>{children}</th>,
           td: ({ children, ...props }) => <td className="md-td" {...props}>{children}</td>,
-          hr: (props) => <hr className="md-hr" {...props} />,
-          img: ({ src, alt, ...props }) => <img src={src} alt={alt || ''} className="md-img" {...props} />,
+          hr: (props: any) => <hr className="md-hr" {...props} />,
+          img: ({ node, src, alt, height, width, ...props }: any) => {
+            // 检测是否是本地相对路径
+            const isLocalPath = src && (src.startsWith('./') || src.startsWith('../') || (!src.startsWith('http') && !src.startsWith('data:')));
+            
+            return (
+              <span className="md-img-wrapper" style={{ display: 'inline-block' }}>
+                <img 
+                  src={src}
+                  alt={alt || ''}
+                  className="md-img" 
+                  height={height}
+                  width={width}
+                  style={{ 
+                    maxWidth: '100%',
+                    ...(height && !width ? { width: 'auto' } : {}),
+                    ...props.style 
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    // 本地路径图片无法加载时显示友好提示
+                    if (isLocalPath) {
+                      target.style.display = 'none';
+                      const wrapper = target.parentElement;
+                      if (wrapper && !wrapper.querySelector('.img-placeholder')) {
+                        const placeholder = document.createElement('span');
+                        placeholder.className = 'img-placeholder';
+                        placeholder.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:#f0f4f8;border:1px solid #d0d7de;border-radius:6px;color:#57606a;font-size:12px;';
+                        placeholder.innerHTML = `🖼️ <span style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${src}</span>`;
+                        wrapper.appendChild(placeholder);
+                      }
+                    }
+                  }}
+                  {...props}
+                />
+              </span>
+            );
+          },
           pre: ({ children, ...props }) => <pre className="md-pre" {...props}>{children}</pre>,
         }}
       >
@@ -224,10 +261,10 @@ export default function Preview({ content }: PreviewProps) {
         /* Images */
         .md-img {
           max-width: 100%;
-          height: auto;
           border-radius: 6px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.12);
           margin: 8px 0;
+          display: inline-block;
         }
 
         /* Support for HTML align attribute */

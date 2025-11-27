@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+aiosqlite
+pydantic
+openai
+python-dotenv
+markdown-it-py
+mdit-py-plugins
+aiohttp
+tiktoken

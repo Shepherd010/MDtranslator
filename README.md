@@ -248,6 +248,19 @@ MDtranslator/
 
 欢迎提交 Issue 和 Pull Request！
 
+## To-Do
+- [ ] 添加多语言互译支持
+- [ ] 更好用的MD文本编辑器
+- [ ] 秒级实时互译修改+渲染
+- [ ] 工作区+多文档同时翻译
+- [ ] 多样化外观
+- [ ] 添加本地模型支持
+- [ ] 添加更多参数支持
+- [ ] Docker部署
+- [ ] 添加更多语言支持
+- [ ] LaTex-HTML支持
+- [ ] OCR转MD支持
+
 ## 📧 联系
 
 如有问题，请提交 [Issue](https://github.com/yourusername/MDtranslator/issues)。

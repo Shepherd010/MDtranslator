@@ -1,100 +1,107 @@
-# MDtranslator - Markdown 文档智能翻译工具
+<div align="center">
 
-<p align="center">
-  <img src="doc/logo.png" alt="MDtranslator Logo" width="120">
-</p>
+# 🌐 MDtranslator
 
-<p align="center">
-  <strong>🌐 基于大语言模型的 Markdown 文档翻译工具</strong>
-</p>
+**基于大语言模型的 Markdown 文档智能翻译工具**
 
-<p align="center">
-  <a href="#功能特性">功能特性</a> •
-  <a href="#系统架构">系统架构</a> •
-  <a href="#快速开始">快速开始</a> •
-  <a href="#使用说明">使用说明</a> •
-  <a href="#配置说明">配置说明</a> •
-  <a href="#开发指南">开发指南</a>
-</p>
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
+[![Node.js](https://img.shields.io/badge/Node.js.svg)](https://nodejs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-teal.svg)](https://fastapi.tiangolo.com)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org)
+
+[功能特性](#-功能特性) •
+[解决痛点](#-解决痛点) •
+[快速开始](#-快速开始) •
+[使用指南](#-使用指南) •
+[技术架构](#-技术架构) •
+[开发指南](#-开发指南)
+
+<img src="doc/preview.gif" alt="MDtranslator Preview" width="800">
+
+</div>
+
+---
+
+## 😫 解决痛点
+
+| 痛点 | 传统方案 | MDtranslator |
+|:---:|:---:|:---:|
+| **格式丢失** | 翻译后 Markdown 格式混乱，代码块/公式被破坏 | ✅ 完美保留所有格式 |
+| **上下文断裂** | 整篇文档一次翻译，超长文本被截断 | ✅ 智能分块，保持语义连贯 |
+| **无法对照** | 译文和原文分开，难以校对 | ✅ 四分屏实时对照 |
+| **进度不透明** | 长文档翻译时只能等待 | ✅ 流式输出，实时显示进度 |
+| **历史丢失** | 翻译结果需要手动保存 | ✅ 自动持久化，随时恢复 |
 
 ---
 
 ## ✨ 功能特性
 
-- 🔄 **智能分块翻译** - 自动将长文档按结构分块，保持文档完整性
-- 📝 **实时预览** - 四分屏布局，同时查看原文和译文的源码与渲染效果
-- 🎯 **格式保持** - 完美保留 Markdown 格式、代码块、数学公式、Mermaid 图表
-- 💾 **自动保存** - 翻译历史自动持久化，随时恢复之前的工作
-- ⚙️ **灵活配置** - 可调节分块数量、LLM 模型、温度等参数
-- 📥 **多种导出** - 支持导出原文、译文或双语对照版本
-- 🎨 **优雅界面** - 现代化 UI 设计，支持面板展开/折叠
+<table>
+<tr>
+<td width="50%">
 
-## 🏗️ 系统架构
+### 🔄 智能分块翻译
+- 按文档结构自动分块
+- 段落边界智能识别
+- 上下文信息传递
+- 可配置分块数量
 
-```
-┌───────────────────────────────────────────────────────┐
-│                        Frontend (Next.js)             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │   Editor    │  │   Preview   │  │  Settings   │    │
-│  │ (CodeMirror)│  │ (Markdown)  │  │   Modal     │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-│                           │                           │
-│                    Zustand Store                      │
-└───────────────────────────┼───────────────────────────┘
-                            │ HTTP / WebSocket
-┌───────────────────────────┼───────────────────────────┐
-│                        Backend (FastAPI)              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │  Translate  │  │  Document   │  │  Settings   │    │
-│  │    API      │  │    API      │  │    API      │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-│         │                │                │           │
-│  ┌──────┴────────────────┴────────────────┴──────┐    │
-│  │              Persistent Storage               │    │
-│  │           (JSON File / In-Memory)             │    │
-│  └───────────────────────────────────────────────┘    │
-│                           │                           │
-│                    LLM API (Qwen/OpenAI)              │
-└───────────────────────────────────────────────────────┘
-```
+</td>
+<td width="50%">
 
-### 技术栈
+### 📝 四分屏实时预览
+- 原文源码 / 原文渲染
+- 译文源码 / 译文渲染
+- 面板可独立放大
+- 支持 Mermaid / KaTeX
 
-| 层级 | 技术 |
-|------|------|
-| 前端框架 | Next.js 14 + React 18 |
-| 状态管理 | Zustand |
-| 编辑器 | CodeMirror 6 |
-| Markdown渲染 | react-markdown + remark/rehype |
-| 数学公式 | KaTeX |
-| 图表 | Mermaid |
-| 动画 | Framer Motion |
-| 后端框架 | FastAPI + Uvicorn |
-| LLM 接口 | OpenAI SDK (兼容 Qwen API) |
-| 持久化 | JSON 文件存储 |
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🎯 格式完美保持
+- Markdown 语法完整保留
+- 代码块语法高亮
+- 数学公式正确渲染
+- 表格/图片/链接不变形
+
+</td>
+<td width="50%">
+
+### 💾 自动持久化
+- SQLite 数据库存储
+- 翻译历史一键恢复
+- 设置自动同步
+- 支持文档管理
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 🚀 快速开始
 
 ### 环境要求
 
-- **Python** >= 3.10
-- **Node.js** >= 18
-- **Conda** (推荐) 或其他 Python 环境管理工具
+> **Python** ≥ 3.10 &nbsp;•&nbsp; **Node.js** ≥ 18 &nbsp;•&nbsp; **Conda** (推荐)
 
-### 1. 克隆项目
+### 1️⃣ 克隆项目
 
 ```bash
-git clone https://github.com/yourusername/MDtranslator.git
+git clone https://github.com/Shepherd010/MDtranslator.git
 cd MDtranslator
 ```
 
-### 2. 配置环境变量
+### 2️⃣ 配置 API Key
 
 ```bash
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入你的 API Key：
+编辑 `.env` 文件：
 
 ```env
 QWEN_API_KEY=your_api_key_here
@@ -104,93 +111,125 @@ QWEN_MODEL_NAME=qwen-flash
 
 > 💡 支持阿里云通义千问 API 或任何 OpenAI 兼容接口
 
-### 3. 安装依赖
+### 3️⃣ 安装依赖
 
-**后端依赖：**
+<details>
+<summary><b>后端 (Python)</b></summary>
 
 ```bash
-# 创建 Conda 环境（推荐）
+# 创建环境
 conda create -n mdtranslator python=3.11
 conda activate mdtranslator
 
-# 安装 Python 依赖
+# 安装依赖
 pip install -r backend/requirements.txt
 ```
 
-**前端依赖：**
+</details>
+
+<details>
+<summary><b>前端 (Node.js)</b></summary>
 
 ```bash
 cd src
-npm install
-# 或使用 yarn（推荐）
-yarn install
-
+yarn install  # 或 npm install
 ```
 
-### 4. 启动服务
+</details>
 
+### 4️⃣ 启动服务
+
+**Windows:**
+```powershell
+conda activate mdtranslator
+.\start.ps1
+```
+
+**Linux/macOS:**
 ```bash
-# 确保在项目根目录，且已激活 conda 环境
 conda activate mdtranslator
 bash start.sh
 ```
 
-或分别启动：
+### 5️⃣ 开始使用
 
-```bash
-# 终端 1 - 后端
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
+🌐 打开浏览器访问 **http://localhost:3000**
 
-# 终端 2 - 前端
-cd src && npm run dev
-```
+---
 
-### 5. 访问应用
-
-打开浏览器访问 http://localhost:3000
-
-## 📖 使用说明
+## 📖 使用指南
 
 ### 基本流程
 
-1. **上传文档** - 拖拽或点击上传 Markdown 文件
-2. **预览原文** - 左侧编辑器，右侧实时预览
-3. **开始翻译** - 点击「开始翻译」按钮
-4. **查看结果** - 四分屏显示：左上英文MD、左下中文MD、右上英文渲染、右下中文渲染
-5. **导出文档** - 选择导出格式（译文/原文/双语对照）
+```mermaid
+graph LR
+    A[📄 上传 MD 文件] --> B[👀 预览原文]
+    B --> C[🚀 开始翻译]
+    C --> D[📊 实时查看进度]
+    D --> E[✅ 四屏对照校对]
+    E --> F[💾 导出结果]
+```
 
-### 界面说明
+### 界面模式
 
-| 模式 | 布局 | 说明 |
-|------|------|------|
-| 二分屏 | 左编辑 + 右预览 | 上传后的初始状态 |
-| 四分屏 | 2×2 网格 | 翻译后的完整视图 |
+| 模式 | 触发时机 | 布局 |
+|:---:|:---:|:---:|
+| **二分屏** | 上传后 | 左：源码编辑器 / 右：渲染预览 |
+| **四分屏** | 翻译后 | 左上：原文MD / 右上：原文预览<br>左下：译文MD / 右下：译文预览 |
 
-### 快捷操作
+### 设置选项
 
-- 🔍 **面板放大** - 点击面板标题栏的放大按钮，可将该面板扩展为半屏
-- 📁 **历史记录** - 点击文件夹图标，加载之前保存的翻译
-- ⚙️ **设置** - 点击齿轮图标，调整翻译参数
-- 🔄 **重置** - 点击重置按钮，清空当前内容
+| 设置项 | 说明 | 默认值 |
+|:---|:---|:---:|
+| LLM 模型 | 使用的语言模型 | `qwen-flash` |
+| 温度 | 生成随机性 (0~1) | `0.1` |
+| 分块数量 | 并行翻译块数 | `3` |
+| 自动保存 | 自动持久化历史 | `开启` |
 
-## ⚙️ 配置说明
+---
 
-### 设置项
+## 🏗️ 技术架构
 
-| 设置 | 说明 | 默认值 |
-|------|------|--------|
-| LLM 模型 | 使用的语言模型 | qwen-flash |
-| 温度 | 生成随机性 (0-1) | 0.1 |
-| 分块数量 | 文档分成几块并行翻译 | 3 |
-| 自动保存 | 是否自动保存翻译历史 | 开启 |
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Frontend (Next.js 14)                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐   │
+│  │ Editor   │  │ Preview  │  │ History  │  │Settings│   │
+│  │CodeMirror│  │react-md  │  │  Modal   │  │ Modal  │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───┬────┘   │
+│       └─────────────┴─────────────┴────────────┘        │
+│                         Zustand                         │
+└─────────────────────────┬───────────────────────────────┘
+                          │ HTTP / WebSocket
+┌─────────────────────────┴───────────────────────────────┐
+│                   Backend (FastAPI)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
+│  │Translate │  │Documents │  │      Settings        │   │
+│  │   API    │  │   API    │  │        API           │   │
+│  └────┬─────┘  └────┬─────┘  └──────────┬───────────┘   │
+│       └─────────────┴───────────────────┘               │
+│                   SQLite Storage                        │
+│                         │                               │
+│              LLM API (Qwen / OpenAI)                    │
+└─────────────────────────────────────────────────────────┘
+```
 
-### 分块策略
+### 技术栈
 
-文档会按以下逻辑分块：
+| 层级 | 技术 |
+|:---|:---|
+| **前端框架** | Next.js 14 + React 18 + TypeScript |
+| **状态管理** | Zustand |
+| **代码编辑** | CodeMirror 6 |
+| **Markdown** | react-markdown + remark/rehype |
+| **公式渲染** | KaTeX |
+| **图表渲染** | Mermaid |
+| **动画效果** | Framer Motion |
+| **后端框架** | FastAPI + Uvicorn |
+| **数据存储** | SQLite + aiosqlite |
+| **LLM 接口** | OpenAI SDK |
 
-1. 将文档平均分成 N 块（由「分块数量」设置决定）
-2. 尽量在段落边界处分割，避免破坏文档结构
-3. 各块按顺序依次翻译，保证上下文连贯性
+---
 
 ## 🛠️ 开发指南
 
@@ -198,57 +237,49 @@ cd src && npm run dev
 
 ```
 MDtranslator/
-├── backend/                 # 后端代码
-│   ├── main.py             # FastAPI 入口
+├── 📁 backend/                 # 后端服务
+│   ├── main.py                # FastAPI 入口
+│   ├── persistent_storage.py  # SQLite 存储
+│   ├── markdown_utils.py      # MD 分块工具
 │   ├── routers/
-│   │   └── translate.py    # 翻译相关 API
-│   ├── markdown_utils.py   # Markdown 分块工具
-│   ├── persistent_storage.py # 持久化存储
-│   ├── prompts/
-│   │   └── system_prompt.txt # 系统提示词
-│   └── requirements.txt    # Python 依赖
-├── src/                     # 前端代码 (Next.js)
-│   ├── src/
-│   │   ├── app/            # 页面
-│   │   ├── components/     # 组件
-│   │   │   ├── Editor.tsx
-│   │   │   ├── Preview.tsx
-│   │   │   ├── SplitLayout.tsx
-│   │   │   └── UploadZone.tsx
-│   │   ├── store/          # Zustand 状态
-│   │   └── lib/            # 工具函数
-│   └── package.json
-├── doc/                     # 文档
-├── start.sh                 # 启动脚本
-├── .env.example            # 环境变量模板
-└── README.md               # 本文件
+│   │   └── translate.py       # 翻译 API
+│   └── prompts/
+│       └── system_prompt.txt  # 翻译提示词
+│
+├── 📁 src/                     # 前端应用
+│   └── src/
+│       ├── app/               # Next.js 页面
+│       ├── components/        # React 组件
+│       ├── hooks/             # 自定义 Hooks
+│       └── store/             # Zustand 状态
+│
+├── 📁 example/                 # 示例文档
+├── 📁 doc/                     # 文档资源
+├── start.ps1                  # Windows 启动脚本
+├── start.sh                   # Linux 启动脚本
+└── .env.example               # 环境变量模板
 ```
 
 ### API 接口
 
 | 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/translate` | 创建翻译任务 |
-| WS | `/ws/translate/{doc_id}` | 翻译进度 WebSocket |
-| GET | `/api/documents` | 获取所有文档 |
-| GET | `/api/documents/{id}` | 获取指定文档 |
-| DELETE | `/api/documents/{id}` | 删除文档 |
-| GET | `/api/settings` | 获取设置 |
-| POST | `/api/settings` | 保存设置 |
+|:---:|:---|:---|
+| `POST` | `/api/translate` | 创建翻译任务 |
+| `WS` | `/ws/translate/{doc_id}` | 翻译进度推送 |
+| `GET` | `/api/documents` | 获取文档列表 |
+| `GET` | `/api/documents/{id}` | 获取文档详情 |
+| `DELETE` | `/api/documents/{id}` | 删除文档 |
+| `GET` | `/api/settings` | 获取设置 |
+| `POST` | `/api/settings` | 保存设置 |
 
-### 自定义翻译提示词
+### 自定义提示词
 
-编辑 `backend/prompts/system_prompt.txt` 可自定义翻译风格和要求。
+编辑 `backend/prompts/system_prompt.txt` 自定义翻译风格。
 
-## 📄 许可证
+---
 
-本项目采用 [MIT License](LICENSE) 开源协议。
+## 📋 To-Do
 
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## To-Do
 - [ ] 添加多语言互译支持
 - [ ] 更好用的MD文本编辑器
 - [ ] 秒级实时互译修改+渲染
@@ -263,12 +294,22 @@ MDtranslator/
 - [ ] LaTex-HTML支持
 - [ ] OCR转MD支持
 
-## 📧 联系
+---
 
-如有问题，请提交 [Issue](https://github.com/yourusername/MDtranslator/issues)。
+## 📄 许可证
+
+本项目基于 [MIT License](LICENSE) 开源。
+
+## 🤝 贡献
+
+欢迎提交 [Issue](https://github.com/Shepherd010/MDtranslator/issues) 和 Pull Request！
 
 ---
 
-<p align="center">
-  Made with ❤️ by MDtranslator Team
-</p>
+<div align="center">
+
+**Made with ❤️ by [Shepherd010](https://github.com/Shepherd010)**
+
+⭐ 如果这个项目对你有帮助，请给它一个 Star！
+
+</div>

@@ -35,7 +35,7 @@
 
 | 您的痛点 😫 | MDtranslator 的革命性方案 ⚡️ |
 | :--- | :--- |
-| **交互割裂**<br>修改译文需要：下载->本地改->再预览，反复折磨。 | **所见即所得 (WYSIWYG) 四分屏**<br>首创 \`原文源码\` \| \`原文渲染\` \| \`译文源码\` \| \`译文渲染\` 四屏联动。<br>直接在网页修改译文，右侧实时渲染，不仅是翻译，更是编辑器。 |
+| **交互割裂**<br>修改译文需要：下载->本地改->再预览，反复折磨。 | **所见即所得 (WYSIWYG) 四分屏**<br>首创 `原文源码` \| `原文渲染` \| `译文源码` \| `译文渲染` 四屏联动。<br>直接在网页修改译文，右侧实时渲染，不仅是翻译，更是编辑器。 |
 | **格式灾难**<br>公式错乱、图表消失、代码块缩进报错。 | **AST 级格式保护**<br>基于抽象语法树解析，而非正则替换。完美还原 KaTeX 公式、Mermaid 图表及代码高亮。|
 | **龟速等待**<br>长文档翻译像挤牙膏，且容易中断。 | **Block-Level 并行加速**<br>智能切分文档块，多线程并发调用 LLM。长文翻译速度提升 500%+，进度条实时可见。 |
 | **数据易失**<br>网页一关，所有翻译记录全部丢失。 | **无感自动持久化**<br>内置 SQLite 数据库，每一个字符的修改都实时保存。随时关闭，随时回来，它一直都在。 |
@@ -77,7 +77,7 @@
 
 MDtranslator 采用现代化的前后端分离架构，确保高性能与可扩展性。
 
-\`\`\`mermaid
+```mermaid
 graph TD
     subgraph User_Experience [⚡ 前端交互层 - Next.js 14]
         UI[四分屏工作台]
@@ -111,7 +111,7 @@ graph TD
         LLM_API[OpenAI / Qwen / Claude]
         Queue <--> LLM_API
     end
-\`\`\`
+```
 
 ---
 
@@ -126,10 +126,10 @@ graph TD
 
 ### 1. 克隆仓库
 
-\`\`\`bash
+```bash
 git clone https://github.com/Shepherd010/MDtranslator.git
 cd MDtranslator
-\`\`\`
+```
 
 ### 2. 配置环境 (一行命令)
 
@@ -137,33 +137,33 @@ cd MDtranslator
 
 **Windows:**
 
-\`\`\`powershell
+```powershell
 # 复制配置文件
 cp .env.example .env
 # 启动安装脚本
 .\start.ps1
-\`\`\`
+```
 
 **Linux / Mac:**
 
-\`\`\`bash
+```bash
 cp .env.example .env
 bash start.sh
-\`\`\`
+```
 
 ### 3. 设置 LLM
 
-编辑 \`.env\` 文件，填入您的 API Key（支持 OpenAI, DeepSeek, 阿里云 Qwen 等）。
+编辑 `.env` 文件，填入您的 API Key（支持 OpenAI, DeepSeek, 阿里云 Qwen 等）。
 
-\`\`\`ini
+```ini
 QWEN_API_KEY=sk-xxxxxxxxxxxxxxxx
 QWEN_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 QWEN_MODEL_NAME=qwen-flash
-\`\`\`
+```
 
 ### 4. 启动！
 
-访问浏览器：\`http://localhost:3000\`
+访问浏览器：`http://localhost:3000`
 
 ---
 

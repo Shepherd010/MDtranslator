@@ -1,10 +1,17 @@
 "use client";
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import { useDocumentStore } from '@/store/useDocumentStore';
+
+// 生成唯一的连接 ID（每个浏览器标签页一个）
+function generateConnectionId(): string {
+  return `conn_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+}
 
 export function useTranslation() {
   const wsRef = useRef<WebSocket | null>(null);
+  // 每个 hook 实例保持一个唯一的连接 ID
+  const connectionId = useMemo(() => generateConnectionId(), []);
   
   const {
     rawContent,
@@ -49,9 +56,10 @@ export function useTranslation() {
         status: c.status
       })));
 
+      // 构建 WebSocket URL，包含 connection_id 以支持多用户并发
       const wsHost = process.env.NEXT_PUBLIC_WS_HOST || `${window.location.hostname}:8000`;
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(`${wsProtocol}//${wsHost}/ws/translate/${data.docId}`);
+      const ws = new WebSocket(`${wsProtocol}//${wsHost}/ws/translate/${data.docId}?conn_id=${connectionId}`);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {
@@ -73,7 +81,7 @@ export function useTranslation() {
       console.error(e);
       setIsTranslating(false);
     }
-  }, [rawContent, translationDirection, setChunks, setDocId, setIsTranslating, setLayoutMode, updateChunk]);
+  }, [rawContent, translationDirection, connectionId, setChunks, setDocId, setIsTranslating, setLayoutMode, updateChunk]);
 
   const closeWebSocket = useCallback(() => {
     wsRef.current?.close();

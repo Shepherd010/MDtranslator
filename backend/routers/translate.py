@@ -30,25 +30,61 @@ class DocumentResponse(BaseModel):
 class SettingsRequest(BaseModel):
     settings: Dict[str, Any]
 
-# --- Connection Manager ---
+# --- Connection Manager (支持多用户并发) ---
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
+        # 结构: {doc_id: {connection_id: WebSocket}}
+        self.active_connections: Dict[str, Dict[str, WebSocket]] = {}
+        self._lock = asyncio.Lock()
 
-    async def connect(self, doc_id: str, websocket: WebSocket):
+    async def connect(self, doc_id: str, connection_id: str, websocket: WebSocket):
+        """连接新的 WebSocket 客户端"""
         await websocket.accept()
-        self.active_connections[doc_id] = websocket
+        async with self._lock:
+            if doc_id not in self.active_connections:
+                self.active_connections[doc_id] = {}
+            self.active_connections[doc_id][connection_id] = websocket
+            print(f"[WS Manager] Connected: doc={doc_id}, conn={connection_id}, total connections for doc: {len(self.active_connections[doc_id])}")
 
-    def disconnect(self, doc_id: str):
-        if doc_id in self.active_connections:
-            del self.active_connections[doc_id]
+    async def disconnect(self, doc_id: str, connection_id: str):
+        """断开 WebSocket 连接"""
+        async with self._lock:
+            if doc_id in self.active_connections:
+                if connection_id in self.active_connections[doc_id]:
+                    del self.active_connections[doc_id][connection_id]
+                    print(f"[WS Manager] Disconnected: doc={doc_id}, conn={connection_id}")
+                # 如果该文档没有更多连接，清理空字典
+                if not self.active_connections[doc_id]:
+                    del self.active_connections[doc_id]
 
-    async def send_message(self, doc_id: str, message: dict):
+    async def send_message(self, doc_id: str, connection_id: str, message: dict):
+        """发送消息给特定连接"""
         if doc_id in self.active_connections:
-            try:
-                await self.active_connections[doc_id].send_json(message)
-            except Exception as e:
-                print(f"Error sending message to {doc_id}: {e}")
+            if connection_id in self.active_connections[doc_id]:
+                try:
+                    await self.active_connections[doc_id][connection_id].send_json(message)
+                except Exception as e:
+                    print(f"[WS Manager] Error sending to {doc_id}/{connection_id}: {e}")
+
+    async def broadcast_to_doc(self, doc_id: str, message: dict):
+        """广播消息给文档的所有连接（用于协作场景）"""
+        if doc_id in self.active_connections:
+            dead_connections = []
+            for conn_id, ws in self.active_connections[doc_id].items():
+                try:
+                    await ws.send_json(message)
+                except Exception as e:
+                    print(f"[WS Manager] Broadcast error to {conn_id}: {e}")
+                    dead_connections.append(conn_id)
+            # 清理失效连接
+            for conn_id in dead_connections:
+                await self.disconnect(doc_id, conn_id)
+
+    def get_connection_count(self, doc_id: str = None) -> int:
+        """获取连接数"""
+        if doc_id:
+            return len(self.active_connections.get(doc_id, {}))
+        return sum(len(conns) for conns in self.active_connections.values())
 
 manager = ConnectionManager()
 
@@ -87,12 +123,13 @@ semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
 # 存储每个文档的翻译方向
 doc_directions: Dict[str, str] = {}
 
-async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pre_context: str, post_context: str):
+async def translate_chunk_task(doc_id: str, connection_id: str, chunk: dict, client: AsyncOpenAI, pre_context: str, post_context: str):
+    """翻译单个 chunk，支持指定连接 ID"""
     async with semaphore:
         chunk_index = chunk["chunk_index"]
         direction = doc_directions.get(doc_id, "en2zh")
         
-        await manager.send_message(doc_id, {
+        await manager.send_message(doc_id, connection_id, {
             "type": "chunk_update",
             "chunkIndex": chunk_index,
             "data": {"status": "processing", "translatedText": ""}
@@ -107,7 +144,7 @@ async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pr
                 await asyncio.sleep(1)
                 mock_prefix = "[Mock EN]" if direction == "zh2en" else "[模拟翻译]"
                 mock_text = f"{mock_prefix} {chunk['raw_text'][:50]}..."
-                await manager.send_message(doc_id, {
+                await manager.send_message(doc_id, connection_id, {
                     "type": "chunk_update",
                     "chunkIndex": chunk_index,
                     "data": {"status": "completed", "translatedText": mock_text}
@@ -130,13 +167,13 @@ async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pr
                 content = part.choices[0].delta.content or ""
                 if content:
                     full_text += content
-                    await manager.send_message(doc_id, {
+                    await manager.send_message(doc_id, connection_id, {
                         "type": "chunk_update",
                         "chunkIndex": chunk_index,
                         "data": {"translatedText": full_text}
                     })
             
-            await manager.send_message(doc_id, {
+            await manager.send_message(doc_id, connection_id, {
                 "type": "chunk_update",
                 "chunkIndex": chunk_index,
                 "data": {"status": "completed", "translatedText": full_text}
@@ -146,7 +183,7 @@ async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pr
             
         except Exception as e:
             print(f"Error translating chunk {chunk_index}: {e}")
-            await manager.send_message(doc_id, {
+            await manager.send_message(doc_id, connection_id, {
                 "type": "chunk_update",
                 "chunkIndex": chunk_index,
                 "data": {"status": "error"}
@@ -200,6 +237,19 @@ async def delete_document(doc_id: str):
         raise HTTPException(status_code=404, detail="Document not found")
     return {"success": True}
 
+# --- Status/Monitoring Endpoint ---
+@router.get("/api/status")
+async def get_status():
+    """获取系统状态，包括活跃连接数"""
+    return {
+        "status": "running",
+        "active_connections": manager.get_connection_count(),
+        "connections_by_doc": {
+            doc_id: len(conns) 
+            for doc_id, conns in manager.active_connections.items()
+        }
+    }
+
 # --- Settings Endpoints ---
 @router.get("/api/settings")
 async def get_settings():
@@ -223,9 +273,18 @@ async def save_settings(request: SettingsRequest):
     return {"success": True}
 
 # --- WebSocket Endpoint ---
-async def websocket_translate_handler(websocket: WebSocket, doc_id: str):
-    """WebSocket handler for translation - can be called from main.py"""
-    await manager.connect(doc_id, websocket)
+async def websocket_translate_handler(websocket: WebSocket, doc_id: str, connection_id: str = None):
+    """
+    WebSocket handler for translation - can be called from main.py
+    支持多用户并发：每个连接有唯一 connection_id
+    """
+    # 生成唯一的连接 ID
+    if not connection_id:
+        connection_id = str(uuid.uuid4())
+    
+    await manager.connect(doc_id, connection_id, websocket)
+    print(f"[WS] New connection: doc={doc_id}, conn={connection_id}")
+    
     try:
         doc = await document_store.get_document(doc_id)
         print(f"[WS] Document lookup for {doc_id}: {'Found' if doc else 'Not Found'}")
@@ -241,7 +300,7 @@ async def websocket_translate_handler(websocket: WebSocket, doc_id: str):
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         
         chunks = doc["chunks_data"]
-        print(f"[WS] Found {len(chunks)} chunks to translate")
+        print(f"[WS] Found {len(chunks)} chunks to translate for conn={connection_id}")
         tasks = []
         
         for i, chunk in enumerate(chunks):
@@ -250,20 +309,21 @@ async def websocket_translate_handler(websocket: WebSocket, doc_id: str):
                 post_context = chunks[i+1]["raw_text"][:200] if i < len(chunks) - 1 else ""
                 
                 task = asyncio.create_task(
-                    translate_chunk_task(doc_id, chunk, client, pre_context, post_context)
+                    translate_chunk_task(doc_id, connection_id, chunk, client, pre_context, post_context)
                 )
                 tasks.append(task)
         
-        print(f"[WS] Starting {len(tasks)} translation tasks")
+        print(f"[WS] Starting {len(tasks)} translation tasks for conn={connection_id}")
         if tasks:
             await asyncio.gather(*tasks)
         
         # Update document status
         await document_store.update_document_status(doc_id, "completed")
         
-        print(f"[WS] All tasks complete, sending completion message")
-        await manager.send_message(doc_id, {"type": "complete"})
+        print(f"[WS] All tasks complete for conn={connection_id}, sending completion message")
+        await manager.send_message(doc_id, connection_id, {"type": "complete"})
         
+        # Keep connection alive for potential follow-up messages
         while True:
             try:
                 await asyncio.wait_for(websocket.receive_text(), timeout=60)
@@ -271,10 +331,10 @@ async def websocket_translate_handler(websocket: WebSocket, doc_id: str):
                 continue
             
     except WebSocketDisconnect:
-        print(f"[WS] Client disconnected: {doc_id}")
-        manager.disconnect(doc_id)
+        print(f"[WS] Client disconnected: doc={doc_id}, conn={connection_id}")
+        await manager.disconnect(doc_id, connection_id)
     except Exception as e:
         import traceback
-        print(f"[WS] WebSocket error: {e}")
+        print(f"[WS] WebSocket error for conn={connection_id}: {e}")
         print(traceback.format_exc())
-        manager.disconnect(doc_id)
+        await manager.disconnect(doc_id, connection_id)

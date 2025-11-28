@@ -37,9 +37,10 @@ app.add_middleware(
 app.include_router(translate.router)
 
 # Register WebSocket route directly on the app
+# 支持可选的 connection_id 查询参数，用于多用户并发
 @app.websocket("/ws/translate/{doc_id}")
-async def websocket_endpoint(websocket: WebSocket, doc_id: str):
-    await websocket_translate_handler(websocket, doc_id)
+async def websocket_endpoint(websocket: WebSocket, doc_id: str, conn_id: str = None):
+    await websocket_translate_handler(websocket, doc_id, conn_id)
 
 @app.get("/")
 async def root():

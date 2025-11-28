@@ -124,7 +124,7 @@ log_success "前端构建完成"
 # 创建 systemd 服务文件 - 后端
 log_info "创建 systemd 服务文件..."
 
-# 后端服务 (监听所有接口，用于 WebSocket)
+# 后端服务 (单 worker 但优化了并发处理)
 $SUDO tee /etc/systemd/system/mdtranslator-backend.service > /dev/null << EOF
 [Unit]
 Description=MDtranslator Backend Service
@@ -135,7 +135,7 @@ Type=simple
 User=$USER
 WorkingDirectory=$PROJECT_ROOT/backend
 Environment="PATH=$PROJECT_ROOT/backend/venv/bin"
-ExecStart=$PROJECT_ROOT/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+ExecStart=$PROJECT_ROOT/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 120
 Restart=always
 RestartSec=3
 
@@ -143,7 +143,7 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-# 前端服务 (使用 80 端口，监听所有接口)
+# 前端服务 (使用 3000 端口，通过 iptables 转发 80->3000)
 $SUDO tee /etc/systemd/system/mdtranslator-frontend.service > /dev/null << EOF
 [Unit]
 Description=MDtranslator Frontend Service
@@ -153,15 +153,27 @@ After=network.target mdtranslator-backend.service
 Type=simple
 User=$USER
 WorkingDirectory=$PROJECT_ROOT/src
-Environment="PORT=80"
+Environment="PORT=3000"
 Environment="HOSTNAME=0.0.0.0"
-ExecStart=$(which yarn) start -p 80 -H 0.0.0.0
+ExecStart=$(which yarn) start -p 3000 -H 0.0.0.0
 Restart=always
 RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
 EOF
+
+# 设置端口转发 (80 -> 3000)
+log_info "配置端口转发 80 -> 3000..."
+$SUDO iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000 2>/dev/null || true
+$SUDO iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
+# 保存 iptables 规则
+if command -v netfilter-persistent &> /dev/null; then
+    $SUDO netfilter-persistent save
+else
+    $SUDO apt-get install -y iptables-persistent
+    $SUDO netfilter-persistent save
+fi
 
 # 重新加载 systemd
 $SUDO systemctl daemon-reload

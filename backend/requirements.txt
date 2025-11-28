@@ -9,4 +9,4 @@ markdown-it-py
 mdit-py-plugins
 aiohttp
 tiktoken
-aiosqlite
+httpx

@@ -3,8 +3,8 @@
 import React, { useCallback, useState, memo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, Languages, Zap, GitCompare, FolderOpen, BookOpen } from 'lucide-react';
-import { useDocumentStore } from '@/store/useDocumentStore';
+import { Upload, FileText, Languages, Zap, GitCompare, FolderOpen, BookOpen, ArrowRightLeft } from 'lucide-react';
+import { useDocumentStore, TranslationDirection } from '@/store/useDocumentStore';
 
 interface UploadZoneProps {
   onShowHistory?: () => void;
@@ -67,6 +67,8 @@ const floatingVariants = {
 
 export default function UploadZone({ onShowHistory }: UploadZoneProps) {
   const setRawContent = useDocumentStore((state) => state.setRawContent);
+  const translationDirection = useDocumentStore((state) => state.translationDirection);
+  const setTranslationDirection = useDocumentStore((state) => state.setTranslationDirection);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingExample, setIsLoadingExample] = useState(false);
 
@@ -237,6 +239,40 @@ export default function UploadZone({ onShowHistory }: UploadZoneProps) {
         >
           AI-Powered Context-Aware Markdown Translation
         </motion.p>
+        
+        {/* 翻译方向选择 */}
+        <motion.div
+          variants={itemVariants}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            marginTop: '20px'
+          }}
+        >
+          <ArrowRightLeft size={20} color="rgba(255,255,255,0.8)" />
+          <motion.select
+            whileHover={{ scale: 1.02 }}
+            value={translationDirection}
+            onChange={(e) => setTranslationDirection(e.target.value as TranslationDirection)}
+            style={{
+              padding: '10px 20px',
+              fontSize: '15px',
+              fontWeight: 500,
+              background: 'rgba(255,255,255,0.15)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderRadius: '10px',
+              color: 'white',
+              cursor: 'pointer',
+              outline: 'none',
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            <option value="en2zh" style={{ color: '#333', background: 'white' }}>英文 → 中文</option>
+            <option value="zh2en" style={{ color: '#333', background: 'white' }}>中文 → 英文</option>
+          </motion.select>
+        </motion.div>
         
         <motion.div 
           variants={itemVariants}

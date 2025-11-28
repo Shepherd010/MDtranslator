@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+export type TranslationDirection = 'en2zh' | 'zh2en';
+
 export interface TranslationChunk {
   id: number;
   chunkIndex: number;
@@ -16,6 +18,7 @@ interface DocumentState {
   isTranslating: boolean;
   layoutMode: 'split' | 'quad'; // split (2-pane), quad (4-pane)
   expandedPanel: 'none' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  translationDirection: TranslationDirection; // 翻译方向
   
   setDocId: (id: string) => void;
   setRawContent: (content: string) => void;
@@ -25,6 +28,7 @@ interface DocumentState {
   setIsTranslating: (isTranslating: boolean) => void;
   setLayoutMode: (mode: 'split' | 'quad') => void;
   setExpandedPanel: (panel: 'none' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right') => void;
+  setTranslationDirection: (direction: TranslationDirection) => void;
 }
 
 export const useDocumentStore = create<DocumentState>((set) => ({
@@ -35,6 +39,7 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   isTranslating: false,
   layoutMode: 'split',
   expandedPanel: 'none',
+  translationDirection: 'en2zh', // 默认英文翻译到中文
 
   setDocId: (id) => set({ docId: id }),
   setRawContent: (content) => set({ rawContent: content }),
@@ -59,4 +64,5 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   setIsTranslating: (isTranslating) => set({ isTranslating }),
   setLayoutMode: (mode) => set({ layoutMode: mode }),
   setExpandedPanel: (panel) => set({ expandedPanel: panel }),
+  setTranslationDirection: (direction) => set({ translationDirection: direction }),
 }));

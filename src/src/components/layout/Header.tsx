@@ -4,8 +4,10 @@ import React, { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play, RotateCcw, Download, Loader2,
-  Settings, FolderOpen
+  Settings, FolderOpen, ArrowRightLeft
 } from 'lucide-react';
+
+type TranslationDirection = 'en2zh' | 'zh2en';
 
 interface HeaderProps {
   isTranslating: boolean;
@@ -13,9 +15,11 @@ interface HeaderProps {
   translationProgress: { completed: number; total: number };
   translatedContent: string;
   downloadType: 'bilingual' | 'translated' | 'original';
+  translationDirection: TranslationDirection;
   onTranslate: () => void;
   onDownload: () => void;
   onDownloadTypeChange: (type: 'bilingual' | 'translated' | 'original') => void;
+  onDirectionChange: (direction: TranslationDirection) => void;
   onOpenHistory: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
@@ -62,9 +66,11 @@ export const Header = memo(function Header({
   translationProgress,
   translatedContent,
   downloadType,
+  translationDirection,
   onTranslate,
   onDownload,
   onDownloadTypeChange,
+  onDirectionChange,
   onOpenHistory,
   onOpenSettings,
   onReset,
@@ -164,6 +170,30 @@ export const Header = memo(function Header({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Translation Direction Selector - 翻译方向选择 */}
+        {!isQuad && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowRightLeft size={14} color="#64748b" />
+            <select
+              value={translationDirection}
+              onChange={(e) => onDirectionChange(e.target.value as TranslationDirection)}
+              disabled={isTranslating}
+              style={{
+                padding: '6px 8px',
+                fontSize: '12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                background: 'white',
+                cursor: isTranslating ? 'not-allowed' : 'pointer',
+                opacity: isTranslating ? 0.6 : 1
+              }}
+            >
+              <option value="en2zh">英文 → 中文</option>
+              <option value="zh2en">中文 → 英文</option>
+            </select>
+          </div>
+        )}
 
         {/* Translate Button - 简化 */}
         {!isQuad && (

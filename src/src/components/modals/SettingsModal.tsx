@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ModalWrapper, ModalHeader } from './ModalWrapper';
-import type { Settings } from '@/hooks/useSettings';
+import type { Settings, TranslationDirection } from '@/hooks/useSettings';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -73,6 +73,35 @@ export function SettingsModal({
         animate="show"
         style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
       >
+        <motion.div variants={formItemVariants}>
+          <label style={{
+            display: 'block',
+            fontSize: '13px',
+            fontWeight: 500,
+            marginBottom: '6px',
+            color: '#374151'
+          }}>
+            翻译方向
+          </label>
+          <motion.select
+            whileFocus={{ borderColor: '#667eea' }}
+            value={settings.translation_direction}
+            onChange={(e) => onUpdate({ translation_direction: e.target.value as TranslationDirection })}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              fontSize: '14px',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              outline: 'none'
+            }}
+          >
+            <option value="en2zh">英文 → 中文</option>
+            <option value="zh2en">中文 → 英文</option>
+          </motion.select>
+        </motion.div>
+
         <motion.div variants={formItemVariants}>
           <label style={{
             display: 'block',

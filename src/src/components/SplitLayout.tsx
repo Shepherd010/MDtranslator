@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Code, Languages, Eye } from 'lucide-react';
-import { useDocumentStore } from '@/store/useDocumentStore';
+import { useDocumentStore, TranslationDirection } from '@/store/useDocumentStore';
 import { useTranslation, useDocumentHistory, useSettings } from '@/hooks';
 import { Header } from './layout';
 import { ContentPanel, CollapsedPanel, type PanelId, type PanelSide } from './panels';
@@ -37,12 +37,14 @@ export default function SplitLayout() {
     rawContent,
     translatedContent,
     layoutMode,
+    translationDirection,
     setRawContent,
     setTranslatedContent,
     setChunks,
     setIsTranslating,
     setLayoutMode,
-    setDocId
+    setDocId,
+    setTranslationDirection
   } = useDocumentStore();
 
   // Custom hooks
@@ -77,6 +79,26 @@ export default function SplitLayout() {
   const [downloadType, setDownloadType] = useState<'bilingual' | 'translated' | 'original'>('translated');
 
   const isQuad = layoutMode === 'quad';
+
+  // 根据翻译方向获取标签
+  const getLabels = useCallback(() => {
+    if (translationDirection === 'zh2en') {
+      return {
+        sourceEditor: '中文 MD',
+        sourcePreview: '中文渲染',
+        translatedEditor: '英文 MD',
+        translatedPreview: '英文渲染'
+      };
+    }
+    return {
+      sourceEditor: '英文 MD',
+      sourcePreview: '英文渲染',
+      translatedEditor: '中文 MD',
+      translatedPreview: '中文渲染'
+    };
+  }, [translationDirection]);
+
+  const labels = getLabels();
 
   // Panel toggle handler
   const handlePanelToggle = useCallback((panelId: PanelId, side: PanelSide) => {
@@ -147,8 +169,9 @@ export default function SplitLayout() {
     setRightExpanded(null);
     setIsTranslating(false);
     setDocId('');
+    setTranslationDirection('en2zh');
     closeWebSocket();
-  }, [setRawContent, setTranslatedContent, setChunks, setLayoutMode, setIsTranslating, setDocId, closeWebSocket]);
+  }, [setRawContent, setTranslatedContent, setChunks, setLayoutMode, setIsTranslating, setDocId, setTranslationDirection, closeWebSocket]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -203,9 +226,11 @@ export default function SplitLayout() {
           translationProgress={translationProgress}
           translatedContent={translatedContent}
           downloadType={downloadType}
+          translationDirection={translationDirection}
           onTranslate={handleTranslate}
           onDownload={handleDownload}
           onDownloadTypeChange={setDownloadType}
+          onDirectionChange={setTranslationDirection}
           onOpenHistory={openHistory}
           onOpenSettings={openSettings}
           onReset={handleReset}
@@ -221,7 +246,7 @@ export default function SplitLayout() {
           >
             {!isQuad ? (
               <ContentPanel
-                title="英文 MD"
+                title={labels.sourceEditor}
                 icon={<Code size={14} />}
                 color="#3b82f6"
                 panelId="source-editor"
@@ -237,6 +262,7 @@ export default function SplitLayout() {
                 rawContent={rawContent}
                 translatedContent={translatedContent}
                 leftExpanded={leftExpanded}
+                labels={labels}
                 onRawContentChange={setRawContent}
                 onTranslatedContentChange={setTranslatedContent}
                 onToggle={handlePanelToggle}
@@ -251,7 +277,7 @@ export default function SplitLayout() {
           >
             {!isQuad ? (
               <ContentPanel
-                title="英文预览"
+                title={labels.sourcePreview}
                 icon={<Eye size={14} />}
                 color="#8b5cf6"
                 panelId="translated-editor"
@@ -267,6 +293,7 @@ export default function SplitLayout() {
                 rawContent={rawContent}
                 translatedContent={translatedContent}
                 rightExpanded={rightExpanded}
+                labels={labels}
                 onToggle={handlePanelToggle}
                 onExpand={handlePanelExpand}
               />
@@ -297,10 +324,18 @@ export default function SplitLayout() {
 
 // ==================== Sub-components for Quad Mode ====================
 
+interface PanelLabels {
+  sourceEditor: string;
+  sourcePreview: string;
+  translatedEditor: string;
+  translatedPreview: string;
+}
+
 interface LeftPanelsProps {
   rawContent: string;
   translatedContent: string;
   leftExpanded: 'source-editor' | 'source-preview' | null;
+  labels: PanelLabels;
   onRawContentChange: (value: string) => void;
   onTranslatedContentChange: (value: string) => void;
   onToggle: (panelId: PanelId, side: PanelSide) => void;
@@ -311,6 +346,7 @@ function LeftPanels({
   rawContent,
   translatedContent,
   leftExpanded,
+  labels,
   onRawContentChange,
   onTranslatedContentChange,
   onToggle,
@@ -321,7 +357,7 @@ function LeftPanels({
     return (
       <>
         <CollapsedPanel
-          title="英文 MD"
+          title={labels.sourceEditor}
           icon={<Code size={14} />}
           color="#3b82f6"
           panelId="source-editor"
@@ -329,7 +365,7 @@ function LeftPanels({
           onExpand={onExpand}
         />
         <ContentPanel
-          title="中文 MD"
+          title={labels.translatedEditor}
           icon={<Languages size={14} />}
           color="#10b981"
           panelId="source-preview"
@@ -349,7 +385,7 @@ function LeftPanels({
     return (
       <>
         <ContentPanel
-          title="英文 MD"
+          title={labels.sourceEditor}
           icon={<Code size={14} />}
           color="#3b82f6"
           panelId="source-editor"
@@ -361,7 +397,7 @@ function LeftPanels({
           <Editor value={rawContent} onChange={onRawContentChange} />
         </ContentPanel>
         <CollapsedPanel
-          title="中文 MD"
+          title={labels.translatedEditor}
           icon={<Languages size={14} />}
           color="#10b981"
           panelId="source-preview"
@@ -376,7 +412,7 @@ function LeftPanels({
   return (
     <>
       <ContentPanel
-        title="英文 MD"
+        title={labels.sourceEditor}
         icon={<Code size={14} />}
         color="#3b82f6"
         panelId="source-editor"
@@ -388,7 +424,7 @@ function LeftPanels({
         <Editor value={rawContent} onChange={onRawContentChange} />
       </ContentPanel>
       <ContentPanel
-        title="中文 MD"
+        title={labels.translatedEditor}
         icon={<Languages size={14} />}
         color="#10b981"
         panelId="source-preview"
@@ -407,6 +443,7 @@ interface RightPanelsProps {
   rawContent: string;
   translatedContent: string;
   rightExpanded: 'translated-editor' | 'translated-preview' | null;
+  labels: PanelLabels;
   onToggle: (panelId: PanelId, side: PanelSide) => void;
   onExpand: (panelId: PanelId, side: PanelSide) => void;
 }
@@ -415,6 +452,7 @@ function RightPanels({
   rawContent,
   translatedContent,
   rightExpanded,
+  labels,
   onToggle,
   onExpand,
 }: RightPanelsProps) {
@@ -423,7 +461,7 @@ function RightPanels({
     return (
       <>
         <CollapsedPanel
-          title="英文渲染"
+          title={labels.sourcePreview}
           icon={<Eye size={14} />}
           color="#8b5cf6"
           panelId="translated-editor"
@@ -431,7 +469,7 @@ function RightPanels({
           onExpand={onExpand}
         />
         <ContentPanel
-          title="中文渲染"
+          title={labels.translatedPreview}
           icon={<Eye size={14} />}
           color="#f59e0b"
           panelId="translated-preview"
@@ -451,7 +489,7 @@ function RightPanels({
     return (
       <>
         <ContentPanel
-          title="英文渲染"
+          title={labels.sourcePreview}
           icon={<Eye size={14} />}
           color="#8b5cf6"
           panelId="translated-editor"
@@ -463,7 +501,7 @@ function RightPanels({
           <Preview content={rawContent} />
         </ContentPanel>
         <CollapsedPanel
-          title="中文渲染"
+          title={labels.translatedPreview}
           icon={<Eye size={14} />}
           color="#f59e0b"
           panelId="translated-preview"
@@ -478,7 +516,7 @@ function RightPanels({
   return (
     <>
       <ContentPanel
-        title="英文渲染"
+        title={labels.sourcePreview}
         icon={<Eye size={14} />}
         color="#8b5cf6"
         panelId="translated-editor"
@@ -490,7 +528,7 @@ function RightPanels({
         <Preview content={rawContent} />
       </ContentPanel>
       <ContentPanel
-        title="中文渲染"
+        title={labels.translatedPreview}
         icon={<Eye size={14} />}
         color="#f59e0b"
         panelId="translated-preview"

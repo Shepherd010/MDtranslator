@@ -20,11 +20,13 @@ pkill -9 -f "node node_modules/next/dist/bin/next"
 # 等待进程退出
 sleep 2
 
+# 保存项目根目录
+PROJECT_ROOT=$(pwd)
+
 # 启动后端
 echo "正在启动后端..."
-# 在根目录下运行，以便正确处理 backend 包的相对导入
-# 移除 --reload 以避免可能的数据库锁定问题
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+cd "$PROJECT_ROOT/backend"
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload &
 BACKEND_PID=$!
 
 # 等待几秒让后端启动
@@ -32,11 +34,9 @@ sleep 3
 
 # 启动前端
 echo "正在启动前端..."
-cd src
-# 由于使用了 --no-bin-links，直接调用 next 的可执行文件
-node node_modules/next/dist/bin/next dev &
+cd "$PROJECT_ROOT/src"
+yarn dev &
 FRONTEND_PID=$!
-cd ..
 
 echo "项目已启动!"
 echo "后端 PID: $BACKEND_PID"

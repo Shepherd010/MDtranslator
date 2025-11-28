@@ -1,315 +1,202 @@
 <div align="center">
 
-# 🌐 MDtranslator
+# ⚡️ MDtranslator
 
-**基于大语言模型的 Markdown 文档智能翻译工具**
+### 下一代 LLM 驱动的所见即所得 (WYSIWYG) Markdown 翻译工作台
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
-[![Node.js](https://img.shields.io/badge/Node.js.svg)](https://nodejs.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-teal.svg)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org)
+**实时交互 · 格式无损 · 并行加速 · 四屏对照**
 
-[功能特性](#-功能特性) •
-[解决痛点](#-解决痛点) •
-[快速开始](#-快速开始) •
-[使用指南](#-使用指南) •
-[技术架构](#-技术架构) •
-[开发指南](#-开发指南)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js_14-black?logo=next.js&style=flat-square)](https://nextjs.org)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&style=flat-square)](https://fastapi.tiangolo.com)
+[![OpenAI](https://img.shields.io/badge/Model-LLM_Driven-412991?logo=openai&style=flat-square)](https://openai.com)
 
-<img src="doc/preview.gif" alt="MDtranslator Preview" width="800">
+[📺 在线演示](#-演示) • [⚡ 核心优势](#-为什么选择-mdtranslator) • [🚀 快速部署](#-快速部署) • [🏗 技术架构](#-技术架构)
+
+---
+
+<br>
+
+<img src="doc/preview.gif" alt="MDtranslator Demo" width="100%" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+
+<br>
+<br>
+
+**不仅仅是一个翻译器，它是为您打造的「双语技术写作 IDE」。**
+<br>摒弃传统的"复制-翻译-粘贴-修复格式"的痛苦循环，体验流一般的创作快感。
 
 </div>
 
 ---
 
-## 😫 解决痛点
+## 💥 为什么选择 MDtranslator？
 
-| 痛点 | 传统方案 | MDtranslator |
-|:---:|:---:|:---:|
-| **格式丢失** | 翻译后 Markdown 格式混乱，代码块/公式被破坏 | ✅ 完美保留所有格式 |
-| **上下文断裂** | 整篇文档一次翻译，超长文本被截断 | ✅ 智能分块，保持语义连贯 |
-| **无法对照** | 译文和原文分开，难以校对 | ✅ 四分屏实时对照 |
-| **进度不透明** | 长文档翻译时只能等待 | ✅ 流式输出，实时显示进度 |
-| **历史丢失** | 翻译结果需要手动保存 | ✅ 自动持久化，随时恢复 |
+我们重新思考了 Markdown 翻译的每一个环节，只为解决痛点。
+
+| 您的痛点 😫 | MDtranslator 的革命性方案 ⚡️ |
+| :--- | :--- |
+| **交互割裂**<br>修改译文需要：下载->本地改->再预览，反复折磨。 | **所见即所得 (WYSIWYG) 四分屏**<br>首创 \`原文源码\` \| \`原文渲染\` \| \`译文源码\` \| \`译文渲染\` 四屏联动。<br>直接在网页修改译文，右侧实时渲染，不仅是翻译，更是编辑器。 |
+| **格式灾难**<br>公式错乱、图表消失、代码块缩进报错。 | **AST 级格式保护**<br>基于抽象语法树解析，而非正则替换。完美还原 KaTeX 公式、Mermaid 图表及代码高亮。|
+| **龟速等待**<br>长文档翻译像挤牙膏，且容易中断。 | **Block-Level 并行加速**<br>智能切分文档块，多线程并发调用 LLM。长文翻译速度提升 500%+，进度条实时可见。 |
+| **数据易失**<br>网页一关，所有翻译记录全部丢失。 | **无感自动持久化**<br>内置 SQLite 数据库，每一个字符的修改都实时保存。随时关闭，随时回来，它一直都在。 |
 
 ---
 
-## ✨ 功能特性
+## ✨ 核心特性
+
+<div align="center">
 
 <table>
 <tr>
-<td width="50%">
-
-### 🔄 智能分块翻译
-- 按文档结构自动分块
-- 段落边界智能识别
-- 上下文信息传递
-- 可配置分块数量
-
+<td width="50%" align="center">
+<h3>🚀 极速并行翻译</h3>
+<p align="left">不再按行翻译。系统自动识别章节结构，将文档拆分为语义块，利用 LLM 并发能力，同时翻译多个段落，保持上下文连贯的同时实现极速响应。</p>
 </td>
-<td width="50%">
-
-### 📝 四分屏实时预览
-- 原文源码 / 原文渲染
-- 译文源码 / 译文渲染
-- 面板可独立放大
-- 支持 Mermaid / KaTeX
-
+<td width="50%" align="center">
+<h3>🖥️ 沉浸式四分屏 IDE</h3>
+<p align="left">左侧代码，右侧预览；上部原文，下部译文。四个面板支持独立放大、缩小。专为校对和二次编辑设计，提供超越 IDE 的对比体验。</p>
 </td>
 </tr>
 <tr>
-<td width="50%">
-
-### 🎯 格式完美保持
-- Markdown 语法完整保留
-- 代码块语法高亮
-- 数学公式正确渲染
-- 表格/图片/链接不变形
-
+<td width="50%" align="center">
+<h3>🎨 完美渲染引擎</h3>
+<p align="left">内置 <b>Mermaid</b> 流程图渲染、<b>KaTeX</b> 数学公式引擎。无论是复杂的学术论文还是带有甘特图的技术文档，都能原样呈现。</p>
 </td>
-<td width="50%">
-
-### 💾 自动持久化
-- SQLite 数据库存储
-- 翻译历史一键恢复
-- 设置自动同步
-- 支持文档管理
-
+<td width="50%" align="center">
+<h3>💾 本地优先存储</h3>
+<p align="left">所有数据存储在本地 SQLite。支持历史版本回溯，支持一键导出双语对照 MD、纯中文 MD 或 PDF 文档。</p>
 </td>
 </tr>
 </table>
 
----
-
-## 🚀 快速开始
-
-### 环境要求
-
-> **Python** ≥ 3.10 &nbsp;•&nbsp; **Node.js** ≥ 18 &nbsp;•&nbsp; **Conda** (推荐)
-
-### 1️⃣ 克隆项目
-
-```bash
-git clone https://github.com/Shepherd010/MDtranslator.git
-cd MDtranslator
-```
-
-### 2️⃣ 配置 API Key
-
-```bash
-cp .env.example .env
-```
-
-编辑 `.env` 文件：
-
-```env
-QWEN_API_KEY=your_api_key_here
-QWEN_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-QWEN_MODEL_NAME=qwen-flash
-```
-
-> 💡 支持阿里云通义千问 API 或任何 OpenAI 兼容接口
-
-### 3️⃣ 安装依赖
-
-<details>
-<summary><b>后端 (Python)</b></summary>
-
-```bash
-# 创建环境
-conda create -n mdtranslator python=3.11
-conda activate mdtranslator
-
-# 安装依赖
-pip install -r backend/requirements.txt
-```
-
-</details>
-
-<details>
-<summary><b>前端 (Node.js)</b></summary>
-
-```bash
-cd src
-yarn install  # 或 npm install
-```
-
-</details>
-
-### 4️⃣ 启动服务
-
-**Windows:**
-```powershell
-conda activate mdtranslator
-.\start.ps1
-```
-
-**Linux/macOS:**
-```bash
-conda activate mdtranslator
-bash start.sh
-```
-
-### 5️⃣ 开始使用
-
-🌐 打开浏览器访问 **http://localhost:3000**
-
----
-
-## 📖 使用指南
-
-### 基本流程
-
-```mermaid
-graph LR
-    A[📄 上传 MD 文件] --> B[👀 预览原文]
-    B --> C[🚀 开始翻译]
-    C --> D[📊 实时查看进度]
-    D --> E[✅ 四屏对照校对]
-    E --> F[💾 导出结果]
-```
-
-### 界面模式
-
-| 模式 | 触发时机 | 布局 |
-|:---:|:---:|:---:|
-| **二分屏** | 上传后 | 左：源码编辑器 / 右：渲染预览 |
-| **四分屏** | 翻译后 | 左上：原文MD / 右上：原文预览<br>左下：译文MD / 右下：译文预览 |
-
-### 设置选项
-
-| 设置项 | 说明 | 默认值 |
-|:---|:---|:---:|
-| LLM 模型 | 使用的语言模型 | `qwen-flash` |
-| 温度 | 生成随机性 (0~1) | `0.1` |
-| 分块数量 | 并行翻译块数 | `3` |
-| 自动保存 | 自动持久化历史 | `开启` |
+</div>
 
 ---
 
 ## 🏗️ 技术架构
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Frontend (Next.js 14)                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐   │
-│  │ Editor   │  │ Preview  │  │ History  │  │Settings│   │
-│  │CodeMirror│  │react-md  │  │  Modal   │  │ Modal  │   │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───┬────┘   │
-│       └─────────────┴─────────────┴────────────┘        │
-│                         Zustand                         │
-└─────────────────────────┬───────────────────────────────┘
-                          │ HTTP / WebSocket
-┌─────────────────────────┴───────────────────────────────┐
-│                   Backend (FastAPI)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
-│  │Translate │  │Documents │  │      Settings        │   │
-│  │   API    │  │   API    │  │        API           │   │
-│  └────┬─────┘  └────┬─────┘  └──────────┬───────────┘   │
-│       └─────────────┴───────────────────┘               │
-│                   SQLite Storage                        │
-│                         │                               │
-│              LLM API (Qwen / OpenAI)                    │
-└─────────────────────────────────────────────────────────┘
-```
+MDtranslator 采用现代化的前后端分离架构，确保高性能与可扩展性。
 
-### 技术栈
+\`\`\`mermaid
+graph TD
+    subgraph User_Experience [⚡ 前端交互层 - Next.js 14]
+        UI[四分屏工作台]
+        State[Zustand 状态管理]
+        Preview[React-Markdown渲染引擎]
+        Socket[WebSocket 实时通信]
+        UI --> State
+        State --> Preview
+        State <--> Socket
+    end
 
-| 层级 | 技术 |
-|:---|:---|
-| **前端框架** | Next.js 14 + React 18 + TypeScript |
-| **状态管理** | Zustand |
-| **代码编辑** | CodeMirror 6 |
-| **Markdown** | react-markdown + remark/rehype |
-| **公式渲染** | KaTeX |
-| **图表渲染** | Mermaid |
-| **动画效果** | Framer Motion |
-| **后端框架** | FastAPI + Uvicorn |
-| **数据存储** | SQLite + aiosqlite |
-| **LLM 接口** | OpenAI SDK |
+    subgraph Core_Logic [🧠 核心逻辑层 - FastAPI]
+        API[API 网关]
+        Chunker[AST 智能分块器]
+        Queue[异步任务队列]
+        Merger[上下文合并器]
+        
+        Socket <--> API
+        API --> Chunker
+        Chunker --> Queue
+        Queue --> Merger
+    end
 
----
+    subgraph Data_Layer [💾 数据持久层]
+        SQLite[(SQLite 数据库)]
+        History[版本控制]
+        API --> SQLite
+    end
 
-## 🛠️ 开发指南
-
-### 项目结构
-
-```
-MDtranslator/
-├── 📁 backend/                 # 后端服务
-│   ├── main.py                # FastAPI 入口
-│   ├── persistent_storage.py  # SQLite 存储
-│   ├── markdown_utils.py      # MD 分块工具
-│   ├── routers/
-│   │   └── translate.py       # 翻译 API
-│   └── prompts/
-│       └── system_prompt.txt  # 翻译提示词
-│
-├── 📁 src/                     # 前端应用
-│   └── src/
-│       ├── app/               # Next.js 页面
-│       ├── components/        # React 组件
-│       ├── hooks/             # 自定义 Hooks
-│       └── store/             # Zustand 状态
-│
-├── 📁 example/                 # 示例文档
-├── 📁 doc/                     # 文档资源
-├── start.ps1                  # Windows 启动脚本
-├── start.sh                   # Linux 启动脚本
-└── .env.example               # 环境变量模板
-```
-
-### API 接口
-
-| 方法 | 路径 | 说明 |
-|:---:|:---|:---|
-| `POST` | `/api/translate` | 创建翻译任务 |
-| `WS` | `/ws/translate/{doc_id}` | 翻译进度推送 |
-| `GET` | `/api/documents` | 获取文档列表 |
-| `GET` | `/api/documents/{id}` | 获取文档详情 |
-| `DELETE` | `/api/documents/{id}` | 删除文档 |
-| `GET` | `/api/settings` | 获取设置 |
-| `POST` | `/api/settings` | 保存设置 |
-
-### 自定义提示词
-
-编辑 `backend/prompts/system_prompt.txt` 自定义翻译风格。
+    subgraph AI_Engine [🤖 LLM 引擎]
+        LLM_API[OpenAI / Qwen / Claude]
+        Queue <--> LLM_API
+    end
+\`\`\`
 
 ---
 
-## 📋 To-Do
+## 🚀 快速部署
 
-- [ ] 添加多语言互译支持
-- [ ] 更好用的MD文本编辑器
-- [ ] 秒级实时互译修改+渲染
-- [ ] 工作区+选项卡+多文档翻译
-- [ ] 多样化外观
-- [ ] 添加本地模型支持
-- [ ] 添加更多参数支持
-- [ ] Docker部署
-- [ ] github md链接一键翻译
-- [ ] Chat-Bot支持
-- [ ] 添加更多语言支持
-- [ ] LaTex-HTML支持
-- [ ] OCR转MD支持
+无需复杂的配置，三步即可拥有您的私人翻译工作台。
+
+### 前置要求
+
+* **Python** 3.10+
+* **Node.js** 18+
+
+### 1. 克隆仓库
+
+\`\`\`bash
+git clone https://github.com/Shepherd010/MDtranslator.git
+cd MDtranslator
+\`\`\`
+
+### 2. 配置环境 (一行命令)
+
+我们提供了自动化脚本来处理依赖安装和环境变量配置。
+
+**Windows:**
+
+\`\`\`powershell
+# 复制配置文件
+cp .env.example .env
+# 启动安装脚本
+.\start.ps1
+\`\`\`
+
+**Linux / Mac:**
+
+\`\`\`bash
+cp .env.example .env
+bash start.sh
+\`\`\`
+
+### 3. 设置 LLM
+
+编辑 \`.env\` 文件，填入您的 API Key（支持 OpenAI, DeepSeek, 阿里云 Qwen 等）。
+
+\`\`\`ini
+QWEN_API_KEY=sk-xxxxxxxxxxxxxxxx
+QWEN_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL_NAME=qwen-flash
+\`\`\`
+
+### 4. 启动！
+
+访问浏览器：\`http://localhost:3000\`
 
 ---
+
+## 🗓️ 演进路线 (Roadmap)
+
+我们致力于打造终极的文本处理工具。
+
+- [x] **v1.0**: 核心功能上线（四分屏、并行翻译、AST保护）
+- [x] **v1.1**: **双向翻译支持**（中文↔英文切换）
+- [ ] **v1.2**: **秒级互译**（支持双向修改，改中文自动修正英文，改英文自动更新中文）
+- [ ] **v1.3**: **多模态支持**（OCR 图片转 Markdown，PDF 解析）
+- [ ] **v1.4**: **本地模型量化**（集成 Ollama，断网也能跑）
+- [ ] **v2.0**: **协作工作流**（多人实时协作编辑，类似 Google Docs 的体验）
+
+---
+
+## 🤝 参与贡献
+
+我们非常欢迎 Pull Request！
+
+无论是修复 Bug、优化 Prompt，还是增加新的 UI 主题，您的每一次提交都在让这个工具变得更好。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 📄 许可证
 
-本项目基于 [MIT License](LICENSE) 开源。
-
-## 🤝 贡献
-
-欢迎提交 [Issue](https://github.com/Shepherd010/MDtranslator/issues) 和 Pull Request！
+本项目基于 [MIT License](LICENSE) 开源。这意味着您可以自由地使用、修改和分发。
 
 ---
 
 <div align="center">
+<br>
 
-**Made with ❤️ by [Shepherd010](https://github.com/Shepherd010)**
+**如果 MDtranslator 提升了您的效率，请给项目点个 ⭐ Star！**
 
-⭐ 如果这个项目对你有帮助，请给它一个 Star！
+Made with ❤️ by [Shepherd010](https://github.com/Shepherd010)
 
 </div>

@@ -17,6 +17,7 @@ router = APIRouter()
 class TranslateRequest(BaseModel):
     content: str
     title: Optional[str] = None
+    direction: Optional[str] = "en2zh"  # en2zh 或 zh2en
 
 class DocumentResponse(BaseModel):
     id: str
@@ -52,22 +53,29 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # --- Prompt Engineering ---
-def load_system_prompt():
+def load_system_prompt(direction: str = "en2zh"):
+    """Load system prompt based on translation direction"""
     try:
-        prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts", "system_prompt.txt")
+        if direction == "zh2en":
+            prompt_file = "system_prompt_to_C.txt"  # 中文到英文
+        else:
+            prompt_file = "system_prompt_to_E.txt"  # 英文到中文
+        
+        prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts", prompt_file)
         with open(prompt_path, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
         print(f"Error loading system prompt: {e}")
+        if direction == "zh2en":
+            return "You are a translator. Translate the given text to English, preserving all markdown formatting."
         return "You are a translator. Translate the given text to Chinese, preserving all markdown formatting."
 
-SYSTEM_PROMPT = load_system_prompt()
-
-def build_user_prompt(content: str, pre_context: str = "", post_context: str = "") -> str:
+def build_user_prompt(content: str, pre_context: str = "", post_context: str = "", direction: str = "en2zh") -> str:
+    target_lang = "Chinese" if direction == "en2zh" else "English"
     prompt = ""
     if pre_context:
         prompt += f"[Pre-Context (Do not translate)]:\n{pre_context}\n\n"
-    prompt += f"[Task (Translate to Chinese)]:\n{content}\n\n"
+    prompt += f"[Task (Translate to {target_lang})]:\n{content}\n\n"
     if post_context:
         prompt += f"[Post-Context (Do not translate)]:\n{post_context}\n"
     return prompt
@@ -76,9 +84,13 @@ def build_user_prompt(content: str, pre_context: str = "", post_context: str = "
 CONCURRENCY_LIMIT = 5
 semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
 
+# 存储每个文档的翻译方向
+doc_directions: Dict[str, str] = {}
+
 async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pre_context: str, post_context: str):
     async with semaphore:
         chunk_index = chunk["chunk_index"]
+        direction = doc_directions.get(doc_id, "en2zh")
         
         await manager.send_message(doc_id, {
             "type": "chunk_update",
@@ -87,13 +99,14 @@ async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pr
         })
         
         try:
-            user_content = build_user_prompt(chunk["raw_text"], pre_context, post_context)
-            system_content = SYSTEM_PROMPT
+            user_content = build_user_prompt(chunk["raw_text"], pre_context, post_context, direction)
+            system_content = load_system_prompt(direction)
             
             api_key = os.getenv("QWEN_API_KEY")
             if not api_key or api_key == "your_api_key_here":
                 await asyncio.sleep(1)
-                mock_text = f"[模拟翻译] {chunk['raw_text'][:50]}..."
+                mock_prefix = "[Mock EN]" if direction == "zh2en" else "[模拟翻译]"
+                mock_text = f"{mock_prefix} {chunk['raw_text'][:50]}..."
                 await manager.send_message(doc_id, {
                     "type": "chunk_update",
                     "chunkIndex": chunk_index,
@@ -145,6 +158,10 @@ async def translate_chunk_task(doc_id: str, chunk: dict, client: AsyncOpenAI, pr
 async def create_translation_task(request: TranslateRequest):
     doc_id = str(uuid.uuid4())
     
+    # 保存翻译方向
+    direction = request.direction or "en2zh"
+    doc_directions[doc_id] = direction
+    
     # Get num_chunks from settings (default: 3)
     settings = await document_store.get_all_settings()
     num_chunks = settings.get("num_chunks", 3)
@@ -159,7 +176,7 @@ async def create_translation_task(request: TranslateRequest):
         chunks_data=chunks
     )
     
-    return {"docId": doc_id, "chunks": chunks}
+    return {"docId": doc_id, "chunks": chunks, "direction": direction}
 
 @router.get("/api/documents")
 async def get_all_documents():

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -12,11 +12,15 @@ interface PreviewProps {
 }
 
 export default function Preview({ content }: PreviewProps) {
+  // 缓存plugins配置
+  const remarkPlugins = useMemo(() => [remarkGfm, remarkMath], []);
+  const rehypePlugins = useMemo(() => [rehypeRaw, rehypeKatex], []);
+
   return (
     <div className="markdown-preview">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeRaw, rehypeKatex]}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         skipHtml={false}
         components={{
           code({ node, inline, className, children, ...props }: any) {

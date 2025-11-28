@@ -2,12 +2,15 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
+export type TranslationDirection = 'en2zh' | 'zh2en';
+
 export interface Settings {
   llm_provider: string;
   llm_model: string;
   temperature: number;
   num_chunks: number;
   auto_save: boolean;
+  translation_direction: TranslationDirection;
 }
 
 const defaultSettings: Settings = {
@@ -15,7 +18,8 @@ const defaultSettings: Settings = {
   llm_model: 'qwen-flash',
   temperature: 0.1,
   num_chunks: 3,
-  auto_save: true
+  auto_save: true,
+  translation_direction: 'en2zh'
 };
 
 export function useSettings() {

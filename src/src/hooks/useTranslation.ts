@@ -11,6 +11,7 @@ export function useTranslation() {
     docId,
     chunks,
     isTranslating,
+    translationDirection,
     setChunks,
     updateChunk,
     setIsTranslating,
@@ -31,7 +32,8 @@ export function useTranslation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: rawContent,
-          title: `文档 ${new Date().toLocaleString()}`
+          title: `文档 ${new Date().toLocaleString()}`,
+          direction: translationDirection
         })
       });
 
@@ -70,7 +72,7 @@ export function useTranslation() {
       console.error(e);
       setIsTranslating(false);
     }
-  }, [rawContent, setChunks, setDocId, setIsTranslating, setLayoutMode, updateChunk]);
+  }, [rawContent, translationDirection, setChunks, setDocId, setIsTranslating, setLayoutMode, updateChunk]);
 
   const closeWebSocket = useCallback(() => {
     wsRef.current?.close();

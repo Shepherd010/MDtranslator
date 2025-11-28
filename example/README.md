@@ -1,4 +1,4 @@
-# <img src="./assets/embodied-reasoner-logo.png" height="50">Embodied-Reasoner 
+# Embodied-Reasoner 
 ✨This is the official implementation of paper 
 <a href="https://arxiv.org/abs/2503.21696">Embodied-Reasoner: Synergizing Visual Search, Reasoning, and Action for Embodied Interactive Tasks</a>
 
@@ -13,7 +13,7 @@
     </td>
     <td width="70%">
       <p align="center">
-        <img src="./assets/embodied_reasoner.JPG" height="30"/>
+        <img src="./assets/embodied_reasoner.JPG" height="300"/>
       </p>
     </td>
   </tr>
@@ -23,7 +23,7 @@
           🤗 <a href="https://huggingface.co/datasets/zwq2018/embodied_reasoner">Hugging Face</a>
           <!-- &nbsp&nbsp | &nbsp&nbsp 🤖 <a href="https://modelscope.cn/organization/qwen">ModelScope</a> -->
           <!-- &nbsp&nbsp | &nbsp&nbsp 📑 <a href="https://arxiv.org/abs/2503.21696">Arxiv</a>  -->
-          &nbsp&nbsp | &nbsp&nbsp <img src="assets/arxiv_logo.png" alt="arXiv" height="14"> <a href="https://arxiv.org/abs/2503.21696">Arxiv</a> 
+          &nbsp&nbsp | &nbsp&nbsp <img src="assets/arxiv_logo.png" alt="arXiv" height="10"> <a href="https://arxiv.org/abs/2503.21696">Arxiv</a> 
           &nbsp&nbsp | &nbsp&nbsp 📑 <a href="https://embodied-reasoner.github.io">WebPage</a> 
           &nbsp&nbsp | &nbsp&nbsp  📺  <a href="https://www.bilibili.com/video/BV1Cs7Hz4ETk?t=1623.2">Bilibili</a>
 <br>

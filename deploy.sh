@@ -95,20 +95,27 @@ fi
 # 创建 Python 虚拟环境
 log_info "创建 Python 虚拟环境..."
 cd "$PROJECT_ROOT/backend"
-if [ ! -d "venv" ]; then
+if [ ! -d "venv" ] || [ ! -f "venv/bin/pip" ]; then
+    log_info "创建新的 Python 虚拟环境..."
+    rm -rf venv 2>/dev/null || true
     python3 -m venv venv
     log_success "Python 虚拟环境创建成功"
 else
     log_info "Python 虚拟环境已存在"
 fi
 
-# 激活虚拟环境并安装依赖
+# 使用 venv 的 pip 直接安装依赖（避免 source 在某些环境下失效）
 log_info "安装 Python 依赖..."
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-deactivate
+"$PROJECT_ROOT/backend/venv/bin/pip" install --upgrade pip
+"$PROJECT_ROOT/backend/venv/bin/pip" install -r requirements.txt
 log_success "Python 依赖安装完成"
+
+# 验证 uvicorn 已安装
+if [ ! -f "$PROJECT_ROOT/backend/venv/bin/uvicorn" ]; then
+    log_error "uvicorn 未正确安装到虚拟环境"
+    exit 1
+fi
+log_info "验证: uvicorn 已安装到虚拟环境"
 
 # 安装前端依赖
 log_info "安装前端依赖..."

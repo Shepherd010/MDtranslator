@@ -49,8 +49,9 @@ export function useTranslation() {
         status: c.status
       })));
 
-      const wsHost = process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1:8000';
-      const ws = new WebSocket(`ws://${wsHost}/ws/translate/${data.docId}`);
+      const wsHost = process.env.NEXT_PUBLIC_WS_HOST || `${window.location.hostname}:8000`;
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${wsProtocol}//${wsHost}/ws/translate/${data.docId}`);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {

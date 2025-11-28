@@ -77,7 +77,11 @@ if command -v node &> /dev/null; then
     log_info "当前 Node.js 版本: $NODE_VERSION"
 else
     log_info "安装 Node.js 20.x LTS..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+    if [ -n "$SUDO" ]; then
+        curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+    else
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    fi
     $SUDO apt-get install -y nodejs
 fi
 
@@ -120,7 +124,7 @@ log_success "前端构建完成"
 # 创建 systemd 服务文件 - 后端
 log_info "创建 systemd 服务文件..."
 
-# 后端服务
+# 后端服务 (监听所有接口，用于 WebSocket)
 $SUDO tee /etc/systemd/system/mdtranslator-backend.service > /dev/null << EOF
 [Unit]
 Description=MDtranslator Backend Service
@@ -131,7 +135,7 @@ Type=simple
 User=$USER
 WorkingDirectory=$PROJECT_ROOT/backend
 Environment="PATH=$PROJECT_ROOT/backend/venv/bin"
-ExecStart=$PROJECT_ROOT/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+ExecStart=$PROJECT_ROOT/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=3
 
@@ -139,7 +143,7 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-# 前端服务 (使用 8080 端口)
+# 前端服务 (使用 80 端口，监听所有接口)
 $SUDO tee /etc/systemd/system/mdtranslator-frontend.service > /dev/null << EOF
 [Unit]
 Description=MDtranslator Frontend Service
@@ -149,8 +153,9 @@ After=network.target mdtranslator-backend.service
 Type=simple
 User=$USER
 WorkingDirectory=$PROJECT_ROOT/src
-Environment="PORT=8080"
-ExecStart=$(which yarn) start -p 8080
+Environment="PORT=80"
+Environment="HOSTNAME=0.0.0.0"
+ExecStart=$(which yarn) start -p 80 -H 0.0.0.0
 Restart=always
 RestartSec=3
 
@@ -188,8 +193,8 @@ fi
 # 配置防火墙 (如果 ufw 存在)
 if command -v ufw &> /dev/null; then
     log_info "配置防火墙..."
-    $SUDO ufw allow 8080/tcp
-    log_success "防火墙已开放 8080 端口"
+    $SUDO ufw allow 80/tcp
+    log_success "防火墙已开放 80 端口"
 fi
 
 # 获取服务器 IP
@@ -200,7 +205,7 @@ echo "=========================================="
 log_success "MDtranslator 部署完成!"
 echo "=========================================="
 echo ""
-echo "访问地址: http://${SERVER_IP}:8080"
+echo "访问地址: http://${SERVER_IP}"
 echo ""
 echo "常用命令:"
 echo "  查看后端日志: sudo journalctl -u mdtranslator-backend -f"

@@ -39,6 +39,15 @@ cd MDtranslator
 
 创建 `.env` 文件：
 
+```bash
+cat > .env << 'EOF'
+# OpenAI 兼容 API 配置
+OPENAI_API_KEY=your_api_key_here
+OPENAI_API_BASE=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4
+EOF
+cd ..
+```
 
 > ⚠️ **重要**: 请将 `your_api_key_here` 替换为你的实际 API Key
 

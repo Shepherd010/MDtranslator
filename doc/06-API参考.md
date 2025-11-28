@@ -38,7 +38,7 @@
 
 ### 创建翻译任务
 
-创建新的翻译任务，将内容分块并存储。
+创建新的翻译任务，将内容分块并存储。支持**双向翻译**（英文↔中文）。
 
 **请求**
 
@@ -52,7 +52,8 @@ Content-Type: application/json
 ```json
 {
   "content": "# Hello World\n\nThis is a markdown document.",
-  "title": "My Document"
+  "title": "My Document",
+  "direction": "en2zh"
 }
 ```
 
@@ -60,6 +61,7 @@ Content-Type: application/json
 |:---|:---|:---|:---|
 | `content` | string | ✅ | Markdown 内容 |
 | `title` | string | ❌ | 文档标题（可选） |
+| `direction` | string | ❌ | 翻译方向：`en2zh`（英→中，默认）或 `zh2en`（中→英） |
 
 **响应**
 
@@ -293,19 +295,33 @@ Content-Type: application/json
 
 ### 翻译 WebSocket
 
-建立 WebSocket 连接以接收实时翻译结果。
+建立 WebSocket 连接以接收实时翻译结果。支持**多用户/多标签页并发**连接。
 
 **连接**
 
 ```
-ws://127.0.0.1:8000/ws/translate/{doc_id}
+ws://127.0.0.1:8000/ws/translate/{doc_id}?conn_id={connection_id}
 ```
 
 **参数**
 
-| 参数 | 类型 | 说明 |
-|:---|:---|:---|
-| `doc_id` | string | 通过 POST /api/translate 获取的文档 ID |
+| 参数 | 类型 | 必填 | 说明 |
+|:---|:---|:---|:---|
+| `doc_id` | string | ✅ | 通过 POST /api/translate 获取的文档 ID |
+| `conn_id` | string | ✅ | 连接唯一标识，用于区分不同的浏览器标签页 |
+
+**多用户并发说明**
+
+- 每个浏览器标签页应生成唯一的 `conn_id`
+- 服务端为每个连接维护独立的翻译会话
+- 多个用户同时翻译互不干扰
+- 建议 `conn_id` 格式：`conn_{timestamp}_{random}`
+
+**示例连接 URL**
+
+```
+ws://127.0.0.1:8000/ws/translate/550e8400-e29b-41d4-a716-446655440000?conn_id=conn_1701234567890_abc123def
+```
 
 ---
 
@@ -328,9 +344,11 @@ ws://127.0.0.1:8000/ws/translate/{doc_id}
 
 状态流转：
 
-```
-pending → processing → completed
-                    ↘ error
+```mermaid
+flowchart LR
+    A[pending] --> B[processing]
+    B --> C[completed]
+    B --> D[error]
 ```
 
 | 字段 | 类型 | 说明 |
@@ -339,6 +357,13 @@ pending → processing → completed
 | `chunkIndex` | number | 分块索引 |
 | `data.status` | string | 状态：processing/completed/error |
 | `data.translatedText` | string | 当前已翻译的文本（流式累积） |
+
+**消息节流**
+
+为了优化性能，服务端对消息发送进行了节流控制：
+- 最小发送间隔：50ms
+- Token 批量发送：每 3 个 Token 发送一次更新
+- 状态变更（processing/completed/error）强制立即发送
 
 #### complete
 
